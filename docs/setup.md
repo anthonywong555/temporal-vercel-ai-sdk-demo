@@ -15,6 +15,8 @@ In order to *run* this project you will need to have the following services:
 
 ## Setup
 
+Copy and rename the file `apps/worker/.env.example` to be `apps/worker/.env`.
+
 Run the following commands:
 1. pnpm install
 1. docker compose up -d postgres
