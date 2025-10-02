@@ -1,4 +1,5 @@
 <script lang="ts">
+	import NavSettings from "$lib/components/nav-settings.svelte";
 	import SidebarLeft from "$lib/components/sidebar-left/sidebar-left.svelte";
 	import * as Sidebar from "$lib/components/ui/sidebar/index.js";
 </script>
@@ -19,7 +20,7 @@
 			</div>
 			<div class="flex items-center gap-2 px-3">
 				<div>
-					<h1>End</h1>
+					<NavSettings />
 				</div>
 			</div>
 		</header>
