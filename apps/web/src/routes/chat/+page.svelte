@@ -1,7 +1,19 @@
 <script lang="ts">
 	import NavSettings from "$lib/components/nav-settings.svelte";
 	import SidebarLeft from "$lib/components/sidebar-left/sidebar-left.svelte";
+	import ChatWidget from "$lib/components/chat-widget.svelte";
 	import * as Sidebar from "$lib/components/ui/sidebar/index.js";
+	import { ScrollArea } from "$lib/components/ui/scroll-area/index.js";
+	 import {
+    PromptInput,
+    PromptInputBody,
+    type PromptInputMessage,
+    PromptInputSubmit,
+    PromptInputTextarea,
+    PromptInputToolbar,
+    type ChatStatus,
+  } from "$lib/components/ai-elements/prompt-input";
+
 </script>
 
 <Sidebar.Provider>
@@ -24,7 +36,16 @@
 				</div>
 			</div>
 		</header>
-		<div class="flex flex-1 flex-col gap-4 p-4">
-		</div>
+		<ScrollArea class="h-[79vh] w-[full] rounded-md border p-4">
+			<ChatWidget />
+		</ScrollArea>
+		<PromptInput onSubmit={() => {}}>
+          <PromptInputBody>
+            <PromptInputTextarea />
+          </PromptInputBody>
+          <PromptInputToolbar class="flex justify-end">
+            <PromptInputSubmit />
+          </PromptInputToolbar>
+        </PromptInput>
 	</Sidebar.Inset>
 </Sidebar.Provider>
