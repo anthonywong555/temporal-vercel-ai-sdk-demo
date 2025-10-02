@@ -1,5 +1,5 @@
 {
-  "name": "@boilerplate/temporalio",
+  "name": "@boilerplate/ai",
   "version": "0.0.1",
   "license": "MIT",
   "main": "./dist/index.js",
@@ -14,15 +14,15 @@
   },
   "dependencies": {
     "@boilerplate/common": "workspace:*",
-    "@temporalio/common": "catalog:",
-    "@temporalio/proto": "catalog:",
-    "@temporalio/client": "catalog:"
+    "ai": "catalog:",
+    "@ai-sdk/anthropic": "catalog:",
+    "@ai-sdk/google": "catalog:",
+    "@ai-sdk/openai": "catalog:",
+    "@temporalio/activity": "catalog:"
   },
   "devDependencies": {
-    "@boilerplate/tsconfig": "workspace:*",
     "eslint": "catalog:",
     "tsup": "catalog:",
-    "@temporalio/interceptors-opentelemetry": "catalog:",
     "typescript": "catalog:"
   }
 }

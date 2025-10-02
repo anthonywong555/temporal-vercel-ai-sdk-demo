@@ -19,4 +19,6 @@ export const DEFAULT_TEMPORAL_NAMESPACE = 'default';
 /**
  * Task Queues
  */
-export const GENERAL_TASK_QUEUE = 'boilerplate';
+export const GENERAL_TASK_QUEUE = 'boilerplate-demo';
+export const OPEN_AI_TASK_QUEUE = 'openai-demo';
+export const ANTHROPIC_TASK_QUEUE = 'anthropic-demo';

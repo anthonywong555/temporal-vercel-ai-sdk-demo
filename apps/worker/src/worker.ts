@@ -6,6 +6,8 @@ import {
   GENERAL_TASK_QUEUE,
   ENV_KEY_TEMPORAL_NAMESPACE,
   DEFAULT_TEMPORAL_NAMESPACE,
+  OPEN_AI_TASK_QUEUE,
+  ANTHROPIC_TASK_QUEUE
 } from '@boilerplate/common';
 import { getConnectionOptions } from '@boilerplate/temporalio';
 import { getWorkflowOptions, withOptionalStatusServer } from './env';
@@ -16,6 +18,8 @@ import {
   OpenTelemetryActivityOutboundInterceptor,
   makeWorkflowExporter,
 } from '@temporalio/interceptors-opentelemetry/lib/worker';
+
+import { createAIActivities, AIClient, PROVIDER_OPEN_AI, PROVIDER_ANTHROPIC } from '@boilerplate/ai';
 
 const winstonLogger = createLogger({
   isProduction: process.env.NODE_ENV === 'production' || process.env.NODE_ENV === 'preview',
@@ -54,6 +58,16 @@ async function run() {
     const connection = await NativeConnection.connect(connectionOptions);
     const namespace = getEnv(env, ENV_KEY_TEMPORAL_NAMESPACE, DEFAULT_TEMPORAL_NAMESPACE);
 
+    /* Activities Dependency Injection */
+
+    // OpenAI
+    const OPENAI_WORKER_PORT = getEnv(env, 'OPENAI_WORKER_PORT', '7013');
+    const openAIClient = new AIClient(PROVIDER_OPEN_AI);
+
+    // Anthropic
+    const ANTHROPIC_WORKER_PORT = getEnv(env, 'ANTHROPIC_WORKER_PORT', '7014');
+    const anthropicAIClient = new AIClient(PROVIDER_ANTHROPIC);
+
     const workers: Worker[] = await Promise.all([
       // General
       Worker.create({
@@ -79,11 +93,49 @@ async function run() {
           ],
         },
       }),
+
+      // OpenAI
+      await Worker.create({
+        connection,
+        namespace,
+        taskQueue: OPEN_AI_TASK_QUEUE,
+        activities: {...createAIActivities(openAIClient) },
+        interceptors: traceExporter && {
+          activity: [
+            (ctx) => ({
+              inbound: new OpenTelemetryActivityInboundInterceptor(ctx),
+              outbound: new OpenTelemetryActivityOutboundInterceptor(ctx),
+            }),
+          ],
+        },
+      }),
+
+      // Anthropic
+      await Worker.create({
+        connection,
+        namespace,
+        taskQueue: ANTHROPIC_TASK_QUEUE,
+        activities: {...createAIActivities(anthropicAIClient) },
+        interceptors: traceExporter && {
+          activity: [
+            (ctx) => ({
+              inbound: new OpenTelemetryActivityInboundInterceptor(ctx),
+              outbound: new OpenTelemetryActivityOutboundInterceptor(ctx),
+            }),
+          ],
+        },
+      })
     ]);
 
     await Promise.all(workers.map(async (aWorker) => {
       const {taskQueue} = aWorker.options;
       let port = '7002';
+
+      if(taskQueue === OPEN_AI_TASK_QUEUE) {
+        port = OPENAI_WORKER_PORT;
+      } else if(taskQueue === ANTHROPIC_TASK_QUEUE) {
+        port = ANTHROPIC_WORKER_PORT;
+      }
 
       return await withOptionalStatusServer(aWorker, parseInt(port), async () => {
         try {

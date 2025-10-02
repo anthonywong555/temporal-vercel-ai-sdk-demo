@@ -1,3 +1,3 @@
-export interface ExampleSchema {
-  id: string;
+export interface PromptRequest {
+  prompt: string;
 }
