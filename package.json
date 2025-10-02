@@ -1,0 +1,30 @@
+{
+  "name": "@boilerplate/sample",
+  "private": true,
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "lint": "turbo run lint",
+    "format": "prettier --write .",
+    "check-types": "turbo run check-types",
+    "clean": "turbo run clean && rm -rf .turbo node_modules/ pnpm-lock.yaml docker/ zero/*"
+  },
+  "devDependencies": {
+    "prettier": "^3.6.0",
+    "prettier-plugin-svelte": "^3.4.0",
+    "turbo": "^2.5.6"
+  },
+  "packageManager": "pnpm@10.0.0",
+  "engines": {
+    "node": ">=18"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild",
+      "@swc/core",
+      "@tailwindcss/oxide",
+      "@temporalio/core-bridge",
+      "protobufjs"
+    ]
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "name": "@boilerplate/temporalio",
+  "version": "0.0.1",
+  "license": "MIT",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "clean": "rm -rf ./dist node_modules .turbo",
+    "dev": "npm run build --watch",
+    "build": "tsup index.ts base/index.ts --format cjs,esm --dts --outDir dist",
+    "build.watch": "npm run build --watch",
+    "lint": "TIMING=1 eslint \"**/*.ts*\""
+  },
+  "dependencies": {
+    "@boilerplate/common": "workspace:*",
+    "@temporalio/common": "catalog:",
+    "@temporalio/proto": "catalog:",
+    "@temporalio/client": "catalog:"
+  },
+  "devDependencies": {
+    "@boilerplate/tsconfig": "workspace:*",
+    "eslint": "^9.33.0",
+    "tsup": "^8.4.0",
+    "@temporalio/interceptors-opentelemetry": "catalog:",
+    "typescript": "^5.6.3"
+  }
+}

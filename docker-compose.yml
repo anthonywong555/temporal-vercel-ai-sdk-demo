@@ -1,0 +1,59 @@
+services:
+  postgres:
+    image: postgres:16.2-alpine
+    container_name: postgres-boilerplate
+    shm_size: 1g
+    restart: always
+    healthcheck:
+      test: 'pg_isready -U user --dbname=postgres'
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_DB: postgres
+      POSTGRES_PASSWORD: password
+    command: |
+      postgres 
+      -c wal_level=logical
+      -c max_wal_senders=10 
+      -c max_replication_slots=5 
+      -c hot_standby=on 
+      -c hot_standby_feedback=on
+    ports:
+      - 5433:5432
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker:/docker-entrypoint-initdb.d
+    networks:
+      - home-network
+  web:
+    container_name: web-boilerplate
+    platform: linux/amd64
+    build:
+      context: .
+      dockerfile: ./apps/web/Dockerfile
+    restart: always
+    ports:
+      - 1000:3000
+    networks:
+      - home-network
+
+  worker:
+    container_name: worker-boilerplate
+    platform: linux/amd64
+    build:
+      context: .
+      dockerfile: ./apps/worker/Dockerfile
+    restart: always
+    depends_on:
+      - web
+    networks:
+      - home-network
+
+volumes:
+  postgres_data:
+
+networks:
+  home-network:
+    external: true

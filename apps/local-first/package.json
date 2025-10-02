@@ -1,0 +1,13 @@
+{
+	"name": "@boilerplate/local-first",
+	"private": true,
+	"version": "0.0.1",
+	"type": "module",
+	"scripts": {
+		"dev-test": "zero-cache-dev",
+        "clean": "rm -rf node_modules"
+	},
+    "dependencies": {
+        "@rocicorp/zero": "catalog:"
+    }
+}
