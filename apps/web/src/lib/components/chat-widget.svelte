@@ -1,4 +1,14 @@
 <script lang="ts">
+  	 import {
+    ChainOfThought,
+    ChainOfThoughtContent,
+    ChainOfThoughtHeader,
+    ChainOfThoughtImage,
+    ChainOfThoughtSearchResult,
+    ChainOfThoughtSearchResults,
+    ChainOfThoughtStep,
+  } from "$lib/components/ai-elements/chain-of-thought/index";
+
   import {
     Conversation,
     ConversationContent,
@@ -19,7 +29,7 @@
     MessageAvatar,
     MessageContent,
   } from "$lib/components/ai-elements/message/index.js";
-  import { MessageSquare } from "@lucide/svelte";
+  import { MessageSquare, SearchIcon } from "@lucide/svelte";
   interface MessageData {
     key: string;
     value: string;
@@ -225,6 +235,24 @@
 </script>
 
 <Conversation class="h-full">
+
+  <ChainOfThought defaultOpen>
+  <ChainOfThoughtHeader />
+  <ChainOfThoughtContent>
+    <ChainOfThoughtStep
+      icon={SearchIcon}
+      label="Searching for information"
+      status="complete"
+    >
+      <ChainOfThoughtSearchResults>
+        <ChainOfThoughtSearchResult>
+          Result 1
+        </ChainOfThoughtSearchResult>
+      </ChainOfThoughtSearchResults>
+    </ChainOfThoughtStep>
+  </ChainOfThoughtContent>
+</ChainOfThought>
+
     <!-- Successful Tool Example -->
   <Tool>
     <ToolHeader
