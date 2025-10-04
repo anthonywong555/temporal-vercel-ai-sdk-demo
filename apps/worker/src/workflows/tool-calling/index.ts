@@ -1,5 +1,5 @@
 import { ApplicationFailure, proxyActivities } from '@temporalio/workflow';
-import { GENERAL_TASK_QUEUE, ANTHROPIC_TASK_QUEUE, OPEN_AI_TASK_QUEUE, WeatherSchema, AttractionsSchema } from '@temporal-vercel-demo/common';
+import { GENERAL_TASK_QUEUE, ANTHROPIC_TASK_QUEUE, OPEN_AI_TASK_QUEUE, WeatherSchema, AttractionsSchema, PromptRequest } from '@temporal-vercel-demo/common';
 import { createAIActivities } from "@temporal-vercel-demo/ai";
 import * as toolActivities from "@temporal-vercel-demo/tools";
 import { type ModelMessage, type GenerateTextResult } from "ai";
@@ -31,9 +31,9 @@ const { aiGenerateText: anthropicGenerateText } = proxyActivities<ReturnType<typ
   }
 });
 
-export async function toolCalling() {
+export async function toolCalling(request: PromptRequest):Promise<string> {
   try {
-
+    const { prompt } = request;
     // 💬 Messages
     const messages:ModelMessage[] = [
       {
@@ -42,7 +42,7 @@ export async function toolCalling() {
       },
       {
         role: 'user',
-        content: 'What is the weather in San Francisco and what should I do?'
+        content: prompt
       }
     ];
 
@@ -109,8 +109,13 @@ export async function toolCalling() {
             });
           }
         }
-      } else {
+      } else if(finishReason === 'error' || finishReason === 'unknown') {
+        throw new ApplicationFailure();
+      } else if(finishReason === 'stop') {
         // Exit the loop when the model doesn't request to use any more tools
+        if(agentResponse?.steps[0]?.content[0]?.type === 'text') {
+          return agentResponse?.steps[0]?.content[0]?.text;
+        }
         break;
       }
     }
