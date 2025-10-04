@@ -2,7 +2,7 @@ import { ApplicationFailure, proxyActivities } from '@temporalio/workflow';
 import { GENERAL_TASK_QUEUE, ANTHROPIC_TASK_QUEUE, OPEN_AI_TASK_QUEUE, WeatherSchema, AttractionsSchema, PromptRequest } from '@temporal-vercel-demo/common';
 import { createAIActivities } from "@temporal-vercel-demo/ai";
 import * as toolActivities from "@temporal-vercel-demo/tools";
-import { type ModelMessage, type GenerateTextResult } from "ai";
+import { type ModelMessage, type GenerateTextResult, type ToolContent } from "ai";
 import { z } from "zod/v4";
 import { chainActivities } from "../utils";
 
@@ -56,7 +56,7 @@ export async function toolCalling(request: PromptRequest):Promise<string> {
         description: "Get the attractions in a location",
         inputSchema: z.toJSONSchema(AttractionsSchema)
       }
-    }
+    };
 
     while(true) {
       const agentResponse:GenerateTextResult<any, never> = await chainActivities({
@@ -102,7 +102,7 @@ export async function toolCalling(request: PromptRequest):Promise<string> {
                 toolCallId,
                 type: 'tool-result',
                 output: {
-                  type: 'json',
+                  type: typeof toolResult === 'object' ? 'json' : 'text',
                   value: toolResult
                 }
               }]
@@ -113,13 +113,106 @@ export async function toolCalling(request: PromptRequest):Promise<string> {
         throw new ApplicationFailure();
       } else if(finishReason === 'stop') {
         // Exit the loop when the model doesn't request to use any more tools
-        if(agentResponse?.steps[0]?.content[0]?.type === 'text') {
-          return agentResponse?.steps[0]?.content[0]?.text;
-        }
-        break;
+
+        return agentResponse?.steps[0]?.content[0]?.type === 'text' ? 
+          agentResponse?.steps[0]?.content[0]?.text : '';
       }
     }
   } catch(e) {
     throw new ApplicationFailure('');
   }
 };
+
+export async function parallelToolCalling(request: PromptRequest) {
+  try {
+    const { prompt } = request;
+
+    // 💬 Messages
+    const messages:ModelMessage[] = [
+      {
+        role: 'system',
+        content: 'You are a friendly weather assistant!'
+      },
+      {
+        role: 'user',
+        content: prompt
+      }
+    ];
+
+    // 🛠️ Tools
+    const tools = {
+      weather: {
+        description: 'Get the weather in a location',
+        inputSchema: z.toJSONSchema(WeatherSchema)
+      }
+    };
+
+    while(true) {
+      const agentResponse:GenerateTextResult<any, never> = await chainActivities({
+        activities: [
+          () => openaiGenerateText.executeWithOptions({
+            summary: 'OpenAI.GenerateText',
+          }, [{
+            model: 'gpt-4o-mini',
+            messages,
+            tools
+          }]),
+          () => anthropicGenerateText.executeWithOptions({
+            summary: 'Anthropic.GenerateText'
+          }, [{
+            model: 'claude-3-7-sonnet-20250219',
+            messages,
+            tools
+          }])
+        ]
+      });
+
+      // Add LLM generated messages to the message history
+      messages.push(...agentResponse?.steps[0]?.response?.messages);
+
+      const { finishReason, content: contents } = agentResponse?.steps[0];
+
+      if(finishReason === 'tool-calls') {
+        const toolCallPromises = contents.map((content) => {
+          if(content?.type === 'tool-call') {
+            const { toolName, input } = content;
+            const activity = activityMap[toolName];
+            return activity(input);
+          }
+        });
+
+        const toolCallResults = await Promise.all(toolCallPromises);
+
+        // Build contents
+        const buildContents:ToolContent = [];
+        for(let i = 0; i < toolCallPromises.length; i++) {
+          const content = contents[i];
+          if(content.type === 'tool-call') {
+             const { toolName, toolCallId } = content;
+             const toolCallResult = toolCallResults[i];
+             buildContents.push({
+                toolName,
+                toolCallId,
+                type: 'tool-result',
+                output: {
+                  type: typeof toolCallResult === 'object' ? 'json' : 'text',
+                  value: toolCallResult
+                }
+              });
+          }
+        }
+
+        messages.push({
+          role: 'tool',
+          content: buildContents
+        });
+      } else if(finishReason === 'stop') {
+        return contents[0].type === 'text' ? contents[0].text : '';
+      } else if(finishReason === 'error' || finishReason === 'unknown') {
+        break;
+      }
+    }
+  } catch(e) {
+    throw new ApplicationFailure('');
+  }
+}
