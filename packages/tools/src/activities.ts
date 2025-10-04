@@ -1,3 +1,4 @@
+import { activityInfo, log } from "@temporalio/activity";
 import { AttractionsRequest, AttractionsResponse, LocationResponse, WeatherInformationRequest, WeatherRequest, WeatherResponse } from "@temporal-vercel-demo/common";
 import { openai } from "@ai-sdk/openai";
 import { generateText } from "ai";

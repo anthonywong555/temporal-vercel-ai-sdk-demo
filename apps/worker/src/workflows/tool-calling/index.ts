@@ -1,8 +1,8 @@
-import { ApplicationFailure, proxyActivities, log } from '@temporalio/workflow';
+import { ApplicationFailure, proxyActivities } from '@temporalio/workflow';
 import { GENERAL_TASK_QUEUE, ANTHROPIC_TASK_QUEUE, OPEN_AI_TASK_QUEUE, WeatherSchema, AttractionsSchema } from '@temporal-vercel-demo/common';
 import { createAIActivities } from "@temporal-vercel-demo/ai";
 import * as toolActivities from "@temporal-vercel-demo/tools";
-import { type AssistantContent, type ModelMessage, type GenerateTextResult } from "ai";
+import { type ModelMessage, type GenerateTextResult } from "ai";
 import { z } from "zod/v4";
 import { chainActivities } from "../utils";
 
@@ -13,6 +13,7 @@ const activityMap = proxyActivities<typeof toolActivities>({
     maximumAttempts: 5
   }
 }) as unknown as Record<string, (...args: any[]) => Promise<any>>;
+
 
 const { aiGenerateText: openaiGenerateText } = proxyActivities<ReturnType<typeof createAIActivities>>({
   scheduleToCloseTimeout: '2 minute',
@@ -57,9 +58,7 @@ export async function toolCalling() {
       }
     }
 
-    let finishReason = '';
-    let agentText = '';
-    do {
+    while(true) {
       const agentResponse:GenerateTextResult<any, never> = await chainActivities({
         activities: [
           () => openaiGenerateText.executeWithOptions({
@@ -79,33 +78,41 @@ export async function toolCalling() {
         ]
       });
 
+      // Add LLM generated messages to the message history
+      messages.push(...agentResponse?.steps[0]?.response?.messages);
+
       // Assuming it's the first steps
-      agentText = agentResponse?.steps[0]?.text;
-      finishReason = agentResponse?.steps[0]?.finishReason;
+      //agentText = agentResponse?.steps[0]?.text;
+      const { finishReason } = agentResponse?.steps[0];
 
       if(finishReason === 'tool-calls') {
         // Schedule Activities
         //const toolCalls = agentResponse?.steps[0]?.content[0]?
         for(const content of agentResponse?.steps[0]?.content) {
-          const {type} = content;
+          const { type } = content;
 
           if(type === 'tool-call') {
-            const { toolName, input } = content;
-            
+            const { toolName, toolCallId, input } = content;
             const activity = activityMap[toolName];
-            
-            await activity(input);
+            const toolResult = await activity(input);
+            messages.push({
+              role: 'tool',
+              content: [{
+                toolName,
+                toolCallId,
+                type: 'tool-result',
+                output: {
+                  type: 'json',
+                  value: toolResult
+                }
+              }]
+            });
           }
         }
-
-        const agentContents:AssistantContent = [{
-          type: 'text',
-          text: agentText
-        }]
-
+      } else {
+        // Exit the loop when the model doesn't request to use any more tools
+        break;
       }
-    } while(false) {
-
     }
   } catch(e) {
     throw new ApplicationFailure('');
