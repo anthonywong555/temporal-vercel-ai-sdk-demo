@@ -1,5 +1,5 @@
 {
-  "name": "@boilerplate/sample",
+  "name": "@temporal-vercel-demo/sample",
   "private": true,
   "scripts": {
     "build": "turbo run build",

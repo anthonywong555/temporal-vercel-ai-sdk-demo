@@ -1,5 +1,5 @@
 {
-	"name": "@boilerplate/local-first",
+	"name": "@temporal-vercel-demo/local-first",
 	"private": true,
 	"version": "0.0.1",
 	"type": "module",

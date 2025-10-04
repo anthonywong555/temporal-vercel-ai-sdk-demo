@@ -1,6 +1,6 @@
 import type { RuntimeOptions, WorkerOptions } from "@temporalio/worker";
 import { Worker} from '@temporalio/worker';
-import { getEnv } from '@boilerplate/common';
+import { getEnv } from '@temporal-vercel-demo/common';
 import http from 'node:http';
 
 export function getWorkflowOptions(): Pick<WorkerOptions, "workflowBundle" | "workflowsPath"> {

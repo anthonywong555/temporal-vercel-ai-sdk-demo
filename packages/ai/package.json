@@ -1,5 +1,5 @@
 {
-  "name": "@boilerplate/ai",
+  "name": "@temporal-vercel-demo/ai",
   "version": "0.0.1",
   "license": "MIT",
   "main": "./dist/index.js",
@@ -13,12 +13,13 @@
     "lint": "TIMING=1 eslint \"**/*.ts*\""
   },
   "dependencies": {
-    "@boilerplate/common": "workspace:*",
+    "@temporal-vercel-demo/common": "workspace:*",
     "ai": "catalog:",
     "@ai-sdk/anthropic": "catalog:",
     "@ai-sdk/google": "catalog:",
     "@ai-sdk/openai": "catalog:",
-    "@temporalio/activity": "catalog:"
+    "@temporalio/activity": "catalog:",
+    "@opentelemetry/api": "catalog:"
   },
   "devDependencies": {
     "eslint": "catalog:",

@@ -11,7 +11,7 @@ ENV TURBO_TELEMETRY_DISABLED=1
 COPY . .
 
 # Create a pruned version of worker
-RUN turbo prune @boilerplate/worker --docker
+RUN turbo prune @temporal-vercel-demo/worker --docker
 
 # 2. Building the project. Not sure why it's called installer. Why not, ¯\_(ツ)_/¯.
 FROM base AS installer
@@ -29,7 +29,7 @@ RUN pnpm install --frozen-lockfile
 COPY --from=builder /app/out/full .
 
 # Build the project
-RUN pnpm dlx turbo build --filter=@boilerplate/worker
+RUN pnpm dlx turbo build --filter=@temporal-vercel-demo/worker
 
 # Running the Worker
 FROM base AS runner

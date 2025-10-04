@@ -1,5 +1,5 @@
 {
-  "name": "@temporal-vercel-demo/temporalio",
+  "name": "@temporal-vercel-demo/tools",
   "version": "0.0.1",
   "license": "MIT",
   "main": "./dist/index.js",
@@ -14,15 +14,17 @@
   },
   "dependencies": {
     "@temporal-vercel-demo/common": "workspace:*",
-    "@temporalio/common": "catalog:",
-    "@temporalio/proto": "catalog:",
-    "@temporalio/client": "catalog:"
+    "ai": "catalog:",
+    "@ai-sdk/anthropic": "catalog:",
+    "@ai-sdk/google": "catalog:",
+    "@ai-sdk/openai": "catalog:",
+    "@temporalio/activity": "catalog:",
+    "@opentelemetry/api": "catalog:",
+    "zod": "catalog:"
   },
   "devDependencies": {
-    "@temporal-vercel-demo/tsconfig": "workspace:*",
     "eslint": "catalog:",
     "tsup": "catalog:",
-    "@temporalio/interceptors-opentelemetry": "catalog:",
     "typescript": "catalog:"
   }
 }

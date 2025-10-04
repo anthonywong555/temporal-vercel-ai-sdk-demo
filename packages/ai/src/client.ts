@@ -1,8 +1,10 @@
-import { generateText, LanguageModel, jsonSchema, stepCountIs } from "ai";
+import { Context, CancelledFailure, heartbeat } from "@temporalio/activity";
+import { generateText, LanguageModel, jsonSchema, stepCountIs, type ModelMessage } from "ai";
 import { createOpenAI, openai } from "@ai-sdk/openai";
 import { createAnthropic, anthropic } from "@ai-sdk/anthropic";
 import type { GenerateTextRequest } from "./types";
-import { Context } from "@temporalio/activity";
+import { trace, context } from "@opentelemetry/api";
+
 
 export const PROVIDER_OPEN_AI = 'OPEN_AI';
 export const PROVIDER_ANTHROPIC = 'ANTHROPIC';
@@ -20,9 +22,23 @@ export class AIClient {
     this.provider = provider;
   }
 
+  formatTools(tools:any = {}) {
+    const formattedTools:any = {};
+    for(const atool of Object.keys(tools)) {
+      // Copy the info over
+      formattedTools[atool] = tools[atool];
+
+      // Format the parameters into JSON Schema
+      if(tools[atool].inputSchema && !tools[atool].inputSchema.jsonSchema) {
+        formattedTools[atool].inputSchema = jsonSchema(tools[atool].inputSchema);   
+      }
+    }
+    return formattedTools;
+  }
+
   async generateText(aRequest: GenerateTextRequest) {
-    const { log } = Context.current();
-    const { model, prompt, messages, tools, toolChoice } = aRequest;
+    const tracer = trace.getTracer('@temporalio/interceptor-workflow');
+    const { model, prompt = '', messages = [], tools = {}, toolChoice } = aRequest;
     let targetModel:LanguageModel;
 
     if(this.provider === PROVIDER_ANTHROPIC) {
@@ -33,26 +49,15 @@ export class AIClient {
       throw new InvalidProviderError();
     }
 
-    const formatTools:any = {};
-
-    if(tools) {
-      for(const atool of Object.keys(tools)) {
-
-        // Copy the info over
-        formatTools[atool] = tools[atool];
-
-        // Format the parameters into JSON Schema
-        if(tools[atool].parameters && !tools[atool].parameters.jsonSchema) {
-          formatTools[atool].parameters = jsonSchema(tools[atool].parameters);   
-        }
-      }  
-    }
-
     // TODO: Figure out how to handle failover
     return await generateText({
       model: targetModel,
-      prompt,
-      stopWhen: stepCountIs(1)
+      tools: this.formatTools(tools),
+      ...(messages.length > 0 ? {messages} : {prompt}),
+      stopWhen: stepCountIs(1),
+      experimental_telemetry: {
+        tracer
+      }
     })
   }
 }

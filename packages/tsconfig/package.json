@@ -1,5 +1,5 @@
 {
-    "name": "@boilerplate/tsconfig",
+    "name": "@temporal-vercel-demo/tsconfig",
     "version": "0.0.1",
     "private": true,
     "files": [

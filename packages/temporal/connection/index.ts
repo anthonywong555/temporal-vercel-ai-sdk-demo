@@ -10,7 +10,7 @@ import {
   ENV_KEY_TEMPORAL_NAMESPACE,
   ENV_KEY_TEMPORAL_SERVER_NAME_OVERRIDE,
   ENV_KEY_TEMPORAL_SERVER_ROOT_CA_CERT_PATH,
-} from '@boilerplate/common';
+} from '@temporal-vercel-demo/common';
 import { OpenTelemetryWorkflowClientInterceptor } from '@temporalio/interceptors-opentelemetry';
 import { getDataConverter } from '../encryption';
 import fs from 'fs/promises';

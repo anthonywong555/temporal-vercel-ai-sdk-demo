@@ -11,7 +11,7 @@ ENV TURBO_TELEMETRY_DISABLED=1
 COPY . .
 
 # Create a pruned version of web
-RUN turbo prune @boilerplate/web --docker
+RUN turbo prune @temporal-vercel-demo/web --docker
 
 # 2. Building out the project. Not sure why it's called installer. Why not, ¯\_(ツ)_/¯.
 FROM base as installer
@@ -27,7 +27,7 @@ RUN pnpm install --frozen-lockfile
 
 COPY --from=builder /app/out/full .
 
-RUN pnpm dlx turbo build --filter=@boilerplate/web
+RUN pnpm dlx turbo build --filter=@temporal-vercel-demo/web
 
 # Running the web
 FROM base AS runner

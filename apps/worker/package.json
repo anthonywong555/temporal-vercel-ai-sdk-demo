@@ -1,5 +1,5 @@
 {
-  "name": "@boilerplate/worker",
+  "name": "@temporal-vercel-demo/worker",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -24,14 +24,16 @@
     ]
   },
   "dependencies": {
-    "@boilerplate/common": "workspace:*",
-    "@boilerplate/ai": "workspace:*",
-    "@boilerplate/temporalio": "workspace:*",
+    "@temporal-vercel-demo/ai": "workspace:*",
+    "@temporal-vercel-demo/common": "workspace:*",
+    "@temporal-vercel-demo/temporalio": "workspace:*",
+    "@temporal-vercel-demo/tools": "workspace:*",
+    "@opentelemetry/api": "catalog:",
+    "@opentelemetry/auto-instrumentations-node": "^0.55.0",
     "@opentelemetry/core": "^1.30.0",
     "@opentelemetry/exporter-prometheus": "^0.57.0",
     "@opentelemetry/resources": "^1.30.0",
     "@opentelemetry/sdk-metrics": "^1.30.0",
-    "@opentelemetry/auto-instrumentations-node": "^0.55.0",
     "@opentelemetry/sdk-node": "^0.57.0",
     "@opentelemetry/sdk-trace-node": "^1.30.0",
     "@opentelemetry/semantic-conventions": "^1.28.0",
@@ -41,7 +43,8 @@
     "@temporalio/workflow": "catalog:",
     "ai": "catalog:",
     "triple-beam": "^1.4.1",
-    "winston": "^3.17.0"
+    "winston": "^3.17.0",
+    "zod": "catalog:"
   },
   "devDependencies": {
     "@tsconfig/node22": "^22.0.2",

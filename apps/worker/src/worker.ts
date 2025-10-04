@@ -8,10 +8,9 @@ import {
   DEFAULT_TEMPORAL_NAMESPACE,
   OPEN_AI_TASK_QUEUE,
   ANTHROPIC_TASK_QUEUE
-} from '@boilerplate/common';
-import { getConnectionOptions } from '@boilerplate/temporalio';
+} from '@temporal-vercel-demo/common';
+import { getConnectionOptions } from '@temporal-vercel-demo/temporalio';
 import { getWorkflowOptions, withOptionalStatusServer } from './env';
-import * as activities from './sharable-activities';
 import { DefaultLogger, NativeConnection, Runtime, Worker, makeTelemetryFilterString } from '@temporalio/worker';
 import {
   OpenTelemetryActivityInboundInterceptor,
@@ -19,7 +18,8 @@ import {
   makeWorkflowExporter,
 } from '@temporalio/interceptors-opentelemetry/lib/worker';
 
-import { createAIActivities, AIClient, PROVIDER_OPEN_AI, PROVIDER_ANTHROPIC } from '@boilerplate/ai';
+import { createAIActivities, AIClient, PROVIDER_OPEN_AI, PROVIDER_ANTHROPIC } from '@temporal-vercel-demo/ai';
+import * as toolsActivities from "@temporal-vercel-demo/tools";
 
 const winstonLogger = createLogger({
   isProduction: process.env.NODE_ENV === 'production' || process.env.NODE_ENV === 'preview',
@@ -75,7 +75,7 @@ async function run() {
         namespace,
         taskQueue: GENERAL_TASK_QUEUE,
         activities: {
-          ...activities,
+          ...toolsActivities
         },
         ...getWorkflowOptions(),
         sinks: traceExporter && {
