@@ -27,13 +27,7 @@ catalogs:
     '@temporalio/client':
       specifier: ^1.13.0
       version: 1.13.0
-    '@temporalio/common':
-      specifier: ^1.13.0
-      version: 1.13.0
     '@temporalio/interceptors-opentelemetry':
-      specifier: ^1.13.0
-      version: 1.13.0
-    '@temporalio/proto':
       specifier: ^1.13.0
       version: 1.13.0
     '@temporalio/worker':
@@ -54,6 +48,9 @@ catalogs:
     typescript:
       specifier: ^5.6.3
       version: 5.9.3
+    zero-svelte:
+      specifier: ^0.8.1
+      version: 0.8.1
     zod:
       specifier: ^4.1.11
       version: 4.1.11
@@ -80,12 +77,27 @@ importers:
 
   apps/web:
     dependencies:
+      '@opentelemetry/api':
+        specifier: 'catalog:'
+        version: 1.9.0
+      '@opentelemetry/core':
+        specifier: ^2.0.0
+        version: 2.1.0(@opentelemetry/api@1.9.0)
       '@shikijs/langs':
         specifier: ^3.13.0
         version: 3.13.0
       '@shikijs/themes':
         specifier: ^3.13.0
         version: 3.13.0
+      '@temporal-vercel-demo/common':
+        specifier: workspace:*
+        version: link:../../packages/common
+      '@temporal-vercel-demo/temporalio':
+        specifier: workspace:*
+        version: link:../../packages/temporal
+      '@temporalio/client':
+        specifier: 'catalog:'
+        version: 1.13.0
       ai:
         specifier: ^5.0.59
         version: 5.0.60(zod@4.1.11)
@@ -104,6 +116,12 @@ importers:
       svelte-toolbelt:
         specifier: ^0.10.5
         version: 0.10.5(svelte@5.39.8)
+      zero-svelte:
+        specifier: 'catalog:'
+        version: 0.8.1(@opentelemetry/core@2.1.0(@opentelemetry/api@1.9.0))(svelte@5.39.8)(typescript@5.9.3)
+      zod:
+        specifier: 'catalog:'
+        version: 4.1.11
     devDependencies:
       '@eslint/compat':
         specifier: ^1.2.5
@@ -361,12 +379,6 @@ importers:
         specifier: workspace:*
         version: link:../common
       '@temporalio/client':
-        specifier: 'catalog:'
-        version: 1.13.0
-      '@temporalio/common':
-        specifier: 'catalog:'
-        version: 1.13.0
-      '@temporalio/proto':
         specifier: 'catalog:'
         version: 1.13.0
     devDependencies:
@@ -5104,6 +5116,12 @@ packages:
   yocto-queue@0.1.0:
     resolution: {integrity: sha512-rVksvsnNCdJ/ohGc6xgPwyN8eheCxsiLM8mxuE/t/mOVqJewPuO1miLpTHQiRgTKCLexL4MeAFVagts7HmNZ2Q==}
     engines: {node: '>=10'}
+
+  zero-svelte@0.8.1:
+    resolution: {integrity: sha512-W8M4j/ebqSXb4b77JsbFvoUrx5ltqg6IrJneRC7fcPNZPm7AGj1bSCXWwztUfFu1SghgwRX5y7gQhiIhozMd9g==}
+    engines: {node: '>=22'}
+    peerDependencies:
+      svelte: ^5.15.0
 
   zimmerframe@1.1.4:
     resolution: {integrity: sha512-B58NGBEoc8Y9MWWCQGl/gq9xBCe4IiKM0a2x7GZdQKOW5Exr8S1W24J6OgM1njK8xCRGvAJIL/MxXHf6SkmQKQ==}
@@ -10255,6 +10273,19 @@ snapshots:
   yn@3.1.1: {}
 
   yocto-queue@0.1.0: {}
+
+  zero-svelte@0.8.1(@opentelemetry/core@2.1.0(@opentelemetry/api@1.9.0))(svelte@5.39.8)(typescript@5.9.3):
+    dependencies:
+      '@rocicorp/zero': 0.23.2025090100(@opentelemetry/core@2.1.0(@opentelemetry/api@1.9.0))(typescript@5.9.3)
+      svelte: 5.39.8
+    transitivePeerDependencies:
+      - '@75lb/nature'
+      - '@opentelemetry/core'
+      - bufferutil
+      - encoding
+      - supports-color
+      - typescript
+      - utf-8-validate
 
   zimmerframe@1.1.4: {}
 

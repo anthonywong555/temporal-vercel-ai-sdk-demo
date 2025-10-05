@@ -209,7 +209,7 @@ export async function parallelToolCalling(request: PromptRequest) {
       } else if(finishReason === 'stop') {
         return contents[0].type === 'text' ? contents[0].text : '';
       } else if(finishReason === 'error' || finishReason === 'unknown') {
-        break;
+        throw new ApplicationFailure('');
       }
     }
   } catch(e) {

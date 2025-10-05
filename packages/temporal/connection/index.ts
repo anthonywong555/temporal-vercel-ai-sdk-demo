@@ -12,7 +12,7 @@ import {
   ENV_KEY_TEMPORAL_SERVER_ROOT_CA_CERT_PATH,
 } from '@temporal-vercel-demo/common';
 import { OpenTelemetryWorkflowClientInterceptor } from '@temporalio/interceptors-opentelemetry';
-import { getDataConverter } from '../encryption';
+//import { getDataConverter } from '../encryption';
 import fs from 'fs/promises';
 
 export async function getConnectionOptions(env: Record<string, string | undefined>) {
@@ -70,7 +70,7 @@ export async function connectToTemporal(env: Record<string, string | undefined>,
       })],
     },
     namespace: getEnv(env, ENV_KEY_TEMPORAL_NAMESPACE, DEFAULT_TEMPORAL_NAMESPACE),
-    ...(encryption && {dataConverter: await getDataConverter()})
+    //...(encryption && {dataConverter: await getDataConverter()})
   });
 }
 

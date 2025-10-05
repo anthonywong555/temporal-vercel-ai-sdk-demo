@@ -14,8 +14,6 @@
   },
   "dependencies": {
     "@temporal-vercel-demo/common": "workspace:*",
-    "@temporalio/common": "catalog:",
-    "@temporalio/proto": "catalog:",
     "@temporalio/client": "catalog:"
   },
   "devDependencies": {
