@@ -1,5 +1,11 @@
 import { z, ZodObject, ZodType } from "zod/v4";
 
+export const ChatCreateRequestSchema = z.object({
+  id: z.string().describe('Chat Id.'),
+  prompt: z.string().describe('The user inital prompt.'),
+  workflowType: z.string().describe('The workflow type to use with the prompt.')
+});
+
 export interface PromptRequest {
   prompt: string;
 }

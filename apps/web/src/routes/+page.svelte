@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { goto } from '$app/navigation';
   import NavSettings from "$lib/components/nav-settings.svelte";
   import SidebarLeft from "$lib/components/sidebar-left/sidebar-left.svelte";
   import ChatWidget from "$lib/components/chat-widget.svelte";
@@ -10,7 +11,24 @@
     PromptInputSubmit,
     PromptInputTextarea,
     PromptInputToolbar,
+	type PromptInputMessage,
   } from "$lib/components/ai-elements/prompt-input";
+  import { createChat } from "./chat/data.remote";
+
+  async function handleSubmit (message: PromptInputMessage) {
+    const { text } = message;
+    const id = crypto.randomUUID();
+
+    if(text) {
+      const workflowId = await createChat({
+        id,
+        prompt: text,
+        workflowType: 'prompt'
+      });
+
+      goto(`/chat/${workflowId}`);
+    }
+  }
 </script>
 
 <Sidebar.Provider>
@@ -36,7 +54,7 @@
     <ScrollArea class="h-[79vh] w-[full] rounded-md border p-4">
       <ChatWidget />
     </ScrollArea>
-    <PromptInput onSubmit={() => {}}>
+    <PromptInput onSubmit={handleSubmit}>
       <PromptInputBody>
         <PromptInputTextarea />
       </PromptInputBody>
