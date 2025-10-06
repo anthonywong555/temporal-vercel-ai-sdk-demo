@@ -50,6 +50,7 @@
     "dependencies": {
         "@temporal-vercel-demo/common": "workspace:*",
         "@temporal-vercel-demo/temporalio": "workspace:*",
+        "@temporal-vercel-demo/local-first": "workspace:*",
         "@opentelemetry/api": "catalog:",
         "@opentelemetry/core": "^2.0.0",
         "@temporalio/client": "catalog:",

@@ -1,0 +1,29 @@
+{
+  "name": "@temporal-vercel-demo/database",
+  "version": "0.0.1",
+  "license": "MIT",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "clean": "rm -rf ./dist node_modules .turbo",
+    "dev": "npm run build --watch",
+    "build": "tsup index.ts base/index.ts --format cjs,esm --dts --outDir dist && npm run generate",
+    "build.watch": "npm run build --watch",
+    "lint": "TIMING=1 eslint \"**/*.ts*\"",
+    "generate": "npx drizzle-kit generate --name=init"
+  },
+  "dependencies": {
+    "@temporal-vercel-demo/common": "workspace:*",
+    "drizzle-orm": "catalog:",
+    "pg": "catalog:"
+  },
+  "devDependencies": {
+    "@temporal-vercel-demo/tsconfig": "workspace:*",
+    "@types/pg": "catalog:",
+    "drizzle-kit": "catalog:",
+    "eslint": "catalog:",
+    "tsup": "catalog:",
+    "typescript": "catalog:"
+  }
+}

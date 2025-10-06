@@ -7,7 +7,12 @@
     "lint": "turbo run lint",
     "format": "prettier --write .",
     "check-types": "turbo run check-types",
-    "clean": "turbo run clean && rm -rf .turbo node_modules/ pnpm-lock.yaml docker/ zero/*"
+    "clean": "turbo run clean && rm -rf .turbo node_modules/ pnpm-lock.yaml docker/ zero/*",
+    "dev:zero-cache": "zero-cache-dev",
+    "prod:zero-deply": "zero-deploy-permissions"
+  },
+  "dependencies": {
+    "@rocicorp/zero": "catalog:"
   },
   "devDependencies": {
     "prettier": "^3.6.0",
@@ -18,12 +23,16 @@
   "engines": {
     "node": ">=18"
   },
+  "trustedDependencies": [
+    "@rocicorp/zero-sqlite3"
+  ],
   "pnpm": {
     "onlyBuiltDependencies": [
       "esbuild",
       "@swc/core",
       "@tailwindcss/oxide",
       "@temporalio/core-bridge",
+      "@rocicorp/zero-sqlite3",
       "protobufjs"
     ]
   }

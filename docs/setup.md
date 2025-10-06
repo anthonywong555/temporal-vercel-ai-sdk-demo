@@ -20,6 +20,8 @@ Copy and rename the file `apps/worker/.env.example` to be `apps/worker/.env`.
 Run the following commands:
 1. pnpm install
 1. docker compose up -d postgres
+1. pnpm run build
+1. pnpm run dev:zero-cache
 1. pnpm run dev
 
 ### (Optional) Docker Compose

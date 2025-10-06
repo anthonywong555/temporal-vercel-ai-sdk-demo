@@ -5,17 +5,17 @@
 	import { Toaster } from "$lib/components/ui/sonner/index.js";
   import NavSettings from "$lib/components/nav-settings.svelte";
   import SidebarLeft from "$lib/components/sidebar-left/sidebar-left.svelte";
-  import ChatWidget from "$lib/components/chat-widget.svelte";
   import * as Sidebar from "$lib/components/ui/sidebar/index.js";
-  import { ScrollArea } from "$lib/components/ui/scroll-area/index.js";
-  import {
-    PromptInput,
-    PromptInputBody,
-    PromptInputSubmit,
-    PromptInputTextarea,
-    PromptInputToolbar,
-	type PromptInputMessage,
-  } from "$lib/components/ai-elements/prompt-input";
+
+  import { Z } from "zero-svelte";
+  import { schema, type Schema } from "@temporal-vercel-demo/local-first";
+  import { PUBLIC_ZERO_SERVER } from "$env/static/public";
+
+  new Z<Schema>({
+	  userID: 'anon',
+    server: PUBLIC_ZERO_SERVER,
+    schema
+  });
 
 	let { children } = $props();
 </script>

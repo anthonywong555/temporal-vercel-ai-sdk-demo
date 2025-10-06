@@ -1,0 +1,31 @@
+{
+  "name": "@temporal-vercel-demo/local-first",
+  "version": "1.0.0",
+  "license": "MIT",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "type": "module",
+  "scripts": {
+    "clean": "rm -rf ./dist node_modules .turbo src/zero-schema.gen.ts",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "npm run drizzle-zero:generate && tsup index.ts base/index.ts --format cjs,esm --dts --outDir dist",
+    "dev": "tsc --watch",
+    "start": "node dist/index.js",
+    "push": "npx drizzle-kit push",
+    "drizzle-zero:generate": "drizzle-zero generate -f -o src/zero-schema.gen.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "description": "",
+  "dependencies": {
+    "@temporal-vercel-demo/common": "workspace:*",
+    "@temporal-vercel-demo/database": "workspace:*",
+    "drizzle-zero": "catalog:",
+    "@rocicorp/zero": "catalog:"
+  },
+  "devDependencies": {
+    "tsup": "catalog:",
+    "tsx": "^4.19.4"
+  }
+}

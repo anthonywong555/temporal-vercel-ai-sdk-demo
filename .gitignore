@@ -32,3 +32,10 @@ yarn-error.log*
 .turbo
 
 dist
+
+/docker/meta
+
+/zero/*
+!/zero/README.md
+
+packages/local-first/src/zero-schema.gen.ts
