@@ -7,17 +7,19 @@
   import * as Table from "$lib/components/ui/table/index.js";
   import { toast } from "svelte-sonner";
   import { getTemporalStatus } from "../../routes/services/data.remote";
+  import { get_z } from '$lib/z.svelte';
 
+	const z = get_z();
   let open = $state(false);
 
   let temporal = $state(await getTemporalStatus());
   const temporalStatus = $derived(temporal.canConnectToTemporal);
+  const zeroStatus = $derived(z.online);
 
   async function handleRefresh(service: SERVICES) {
     if(service === SERVICES.TEMPORAL) {
       temporal = await getTemporalStatus();
     }
-
     toast.info(`Refresh ${service}`);
   }
 </script>
@@ -55,10 +57,10 @@
       <Table.Row>
         <Table.Cell class="font-medium">Zero</Table.Cell>
         <Table.Cell>
-          <Badge variant="destructive">Offline</Badge>
+          <Badge variant="{zeroStatus ? 'secondary' : 'destructive'}" class="{zeroStatus ? 'bg-green-500': ''}">{zeroStatus ? 'Online' : 'Offline'}</Badge>
         </Table.Cell>
         <Table.Cell>
-          <Button variant="outline">Refresh</Button>
+          <Button variant="outline" disabled={!zeroStatus}>Reset</Button>
         </Table.Cell>
       </Table.Row>
     </Table.Body>

@@ -1,14 +1,13 @@
 <script lang="ts">
   import * as Sidebar from "$lib/components/ui/sidebar/index.js";
   import MessageSquareHeart from "@lucide/svelte/icons/message-square-heart";
-  import type { ComponentProps } from "svelte";
 </script>
 
 <Sidebar.Menu>
   <Sidebar.MenuItem>
     <Sidebar.MenuButton size="lg">
       {#snippet child({ props })}
-        <a href="##" {...props}>
+        <a href="/" {...props}>
           <div
             class="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg"
           >

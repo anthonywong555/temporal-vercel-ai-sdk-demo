@@ -27,3 +27,7 @@ export enum SERVICES {
   TEMPORAL = 'Temporal',
   ZERO = 'Zero'
 }
+
+// Messages
+export const TEMPORAL_BOT = 'Temporal Bot';
+export const USER_NAME = 'Guest';

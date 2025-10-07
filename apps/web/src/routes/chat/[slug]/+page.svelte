@@ -1,5 +1,4 @@
 <script lang="ts">
-  import type { PageProps } from './$types';
   import ChatWidget from "$lib/components/chat-widget.svelte";
   import { ScrollArea } from "$lib/components/ui/scroll-area/index.js";
   import {
@@ -10,9 +9,11 @@
     PromptInputToolbar,
 	type PromptInputMessage,
   } from "$lib/components/ai-elements/prompt-input";
-  const { data }: PageProps = $props();
-  const { id: chatId } = data;
-  console.log(chatId);
+  import type { PageProps } from "./$types";
+
+  let { data }:PageProps = $props();
+  const conversationId = $derived(data.id);
+
   async function handleSubmit(message: PromptInputMessage) {
     const { text } = message;
     console.log(text);
@@ -21,7 +22,7 @@
 
 
 <ScrollArea class="h-[79vh] w-[full] rounded-md border p-4">
-  <ChatWidget />
+  <ChatWidget conversationId={conversationId} />
 </ScrollArea>
 <PromptInput onSubmit={handleSubmit}>
   <PromptInputBody>

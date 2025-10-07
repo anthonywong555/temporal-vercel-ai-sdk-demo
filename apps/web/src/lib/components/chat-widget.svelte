@@ -30,26 +30,38 @@
     MessageContent,
   } from "$lib/components/ai-elements/message/index.js";
   import { MessageSquare, SearchIcon } from "@lucide/svelte";
-  interface MessageData {
-    key: string;
-    value: string;
-    name: string;
-    avatar: string;
-  }
+  import { Query } from 'zero-svelte';
+	import { get_z } from '$lib/z.svelte';
 
-  const messages: MessageData[] = [];
+  const { conversationId } = $props();
+  console.log(conversationId);
+
+  const z = get_z();
+  const messagesDB = new Query(z.query.messages
+    .where('conversationId', '=', conversationId)
+    .orderBy('createdAt', 'asc')
+  );
+
+  $effect.pre(() => {
+    messagesDB.updateQuery(z.query.messages
+      .where('conversationId', '=', conversationId)
+      .orderBy('createdAt', 'asc')
+    );
+  })
+
+  const messages = $derived(messagesDB.current);
 
     // Mock tool data
   let toolData = {};
   let errorToolData = {};
   // Reactive state using Svelte 5 runes
-  let visibleMessages = $state<MessageData[]>([]);
+  //let visibleMessages = $state<MessageData[]>([]);
 
 </script>
 
 <Conversation class="h-full">
   <ConversationContent>
-    {#if visibleMessages.length === 0}
+    {#if messages.length === 0}
       <ConversationEmptyState
         description="Messages will appear here as the conversation progresses."
         title="Start a conversation"
@@ -59,9 +71,9 @@
         {/snippet}
       </ConversationEmptyState>
     {:else}
-      {#each visibleMessages as messageData, index (messageData.key)}
-        <Message from={index % 2 === 0 ? "user" : "assistant"}>
-          <MessageContent>{messageData.value}</MessageContent>
+      {#each messages as messageData, index (messageData.id)}
+        <Message from={messageData.sender}>
+          <MessageContent>{messageData.content}</MessageContent>
           <MessageAvatar name={messageData.name} src={messageData.avatar} />
         </Message>
       {/each}

@@ -20,6 +20,7 @@ import {
 
 import { createAIActivities, AIClient, PROVIDER_OPEN_AI, PROVIDER_ANTHROPIC } from '@temporal-vercel-demo/ai';
 import * as toolsActivities from "@temporal-vercel-demo/tools";
+import { createDrizzleActivites, DrizzleClient } from '@temporal-vercel-demo/database';
 
 const winstonLogger = createLogger({
   isProduction: process.env.NODE_ENV === 'production' || process.env.NODE_ENV === 'preview',
@@ -68,6 +69,11 @@ async function run() {
     const ANTHROPIC_WORKER_PORT = getEnv(env, 'ANTHROPIC_WORKER_PORT', '7014');
     const anthropicAIClient = new AIClient(PROVIDER_ANTHROPIC);
 
+    // Drizzle
+    const DATABASE_URL = getEnv(env, 'DATABASE_URL');
+    const DRIZZLE_WORKER_PORT = getEnv(env, 'DRIZZLE_WORKER_PORT', '7002');
+    const drizzleClient = new DrizzleClient(DATABASE_URL);
+
     const workers: Worker[] = await Promise.all([
       // General
       Worker.create({
@@ -75,7 +81,8 @@ async function run() {
         namespace,
         taskQueue: GENERAL_TASK_QUEUE,
         activities: {
-          ...toolsActivities
+          ...toolsActivities,
+          ...createDrizzleActivites(drizzleClient)
         },
         ...getWorkflowOptions(),
         sinks: traceExporter && {

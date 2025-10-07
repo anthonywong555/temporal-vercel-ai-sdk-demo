@@ -23,13 +23,13 @@
         workflowType: 'prompt'
       });
 
-      goto(`/chat/${workflowId}`);
+      await goto(`/chat/${workflowId}`);
     }
   }
 </script>
 
 <ScrollArea class="h-[79vh] w-[full] rounded-md border p-4">
-  <ChatWidget />
+  <!--<ChatWidget />-->
 </ScrollArea>
 <PromptInput onSubmit={handleSubmit}>
   <PromptInputBody>

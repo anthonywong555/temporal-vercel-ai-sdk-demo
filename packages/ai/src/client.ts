@@ -54,6 +54,7 @@ export class AIClient {
       model: targetModel,
       tools: this.formatTools(tools),
       ...(messages.length > 0 ? {messages} : {prompt}),
+      // 
       stopWhen: stepCountIs(1),
       experimental_telemetry: {
         tracer
