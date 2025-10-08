@@ -4,7 +4,7 @@
 	import { get_z } from '$lib/z.svelte';
 	
 	const z = get_z();
-	const conversations = new Query(z.query.conversations.orderBy('createdAt', 'desc'));
+	const conversations = new Query(z.query.ConversationSchema.orderBy('createdAt', 'desc'));
 </script>
 
 <Sidebar.Group class="group-data-[collapsible=icon]:hidden">

@@ -1,8 +1,8 @@
 import { randomUUID } from 'crypto';
 import { Context, CancelledFailure, heartbeat, log } from "@temporalio/activity";
-import { streamText, generateText, LanguageModel, jsonSchema, stepCountIs, type ModelMessage } from "ai";
-import { createOpenAI, openai } from "@ai-sdk/openai";
-import { createAnthropic, anthropic } from "@ai-sdk/anthropic";
+import { streamText, generateText, LanguageModel, jsonSchema, stepCountIs } from "ai";
+import { openai } from "@ai-sdk/openai";
+import { anthropic } from "@ai-sdk/anthropic";
 import type { GenerateTextRequest } from "./types";
 import { trace, context } from "@opentelemetry/api";
 import { DrizzleClient } from "@temporal-vercel-demo/database";
@@ -92,8 +92,15 @@ export class AIClient {
         );
       }
     }
-
-    return await result.response;
+    const finishReason = await result.finishReason;
+    const responseMessages = (await result.response).messages;
+    const toolCalls = await result.toolCalls;
+    // Format the response
+    return JSON.parse(JSON.stringify({
+      finishReason,
+      responseMessages,
+      toolCalls
+    }))
   }
 
   async generateText(aRequest: GenerateTextRequest) {

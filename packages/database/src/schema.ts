@@ -49,6 +49,9 @@ export const ToolSchema = pgTable("tools", {
   messageId: uuid("message_id")
     .notNull()
     .references(() => MessageSchema.id, { onDelete: "cascade" }),
+  conversationId: uuid("conversation_id")
+    .notNull()
+    .references(() => ConversationSchema.id, { onDelete: "cascade" }),
   type: text("type").notNull(), // name of tool
   state: toolStateEnum("state").notNull(), 
   input: text("input"),

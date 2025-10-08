@@ -21,6 +21,7 @@ CREATE TABLE "messages" (
 CREATE TABLE "tools" (
 	"id" text PRIMARY KEY NOT NULL,
 	"message_id" uuid NOT NULL,
+	"conversation_id" uuid NOT NULL,
 	"type" text NOT NULL,
 	"state" "tool_state" NOT NULL,
 	"input" text,
@@ -31,4 +32,5 @@ CREATE TABLE "tools" (
 );
 --> statement-breakpoint
 ALTER TABLE "messages" ADD CONSTRAINT "messages_conversation_id_conversations_id_fk" FOREIGN KEY ("conversation_id") REFERENCES "public"."conversations"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "tools" ADD CONSTRAINT "tools_message_id_messages_id_fk" FOREIGN KEY ("message_id") REFERENCES "public"."messages"("id") ON DELETE cascade ON UPDATE no action;
+ALTER TABLE "tools" ADD CONSTRAINT "tools_message_id_messages_id_fk" FOREIGN KEY ("message_id") REFERENCES "public"."messages"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "tools" ADD CONSTRAINT "tools_conversation_id_conversations_id_fk" FOREIGN KEY ("conversation_id") REFERENCES "public"."conversations"("id") ON DELETE cascade ON UPDATE no action;

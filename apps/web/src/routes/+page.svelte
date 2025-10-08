@@ -20,7 +20,7 @@
       const workflowId = await createChat({
         id,
         prompt: text,
-        workflowType: 'promptStreaming'
+        workflowType: 'toolCallingStreaming'
       });
 
       await goto(`/chat/${workflowId}`);

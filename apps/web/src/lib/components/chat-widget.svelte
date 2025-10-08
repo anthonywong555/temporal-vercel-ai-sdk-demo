@@ -38,19 +38,30 @@
   console.log(conversationId);
 
   const z = get_z();
-  const messagesDB = new Query(z.query.messages
+  let messagesDB = new Query(z.query.MessageSchema
     .where('conversationId', '=', conversationId)
     .orderBy('createdAt', 'asc')
   );
 
+  let toolsDB = new Query(z.query.ToolSchema
+    .where('conversationId', '=', conversationId)
+    .orderBy('createdAt', 'asc')
+  )
+
   $effect.pre(() => {
-    messagesDB.updateQuery(z.query.messages
+    messagesDB.updateQuery(z.query.MessageSchema
+        .where('conversationId', '=', conversationId)
+        .orderBy('createdAt', 'asc')
+    );
+
+    toolsDB = new Query(z.query.ToolSchema
       .where('conversationId', '=', conversationId)
       .orderBy('createdAt', 'asc')
-    );
+    )
   })
 
   const messages = $derived(messagesDB.current);
+  const tools = $derived(toolsDB.current);
 
     // Mock tool data
   let toolData = {};
@@ -59,19 +70,41 @@
   //let visibleMessages = $state<MessageData[]>([]);
 </script>
 
-<Conversation class="h-full">
+<Conversation class="h-full max-w-full">
   <ConversationContent>
     {#each messages as messageData, index (messageData.id)}
-      <Message from={messageData.sender}>
-        {#if messageData.content && messageData.sender === 'assistant'}
-          <MessageContent>
-            <Response content={messageData.content} />
-          </MessageContent>
+        {#if messageData.sender === 'assistant'}
+          {#if messageData.content && messageData.content.length > 0}
+          <Message from={messageData.sender}>
+            <MessageContent>
+              <Response content={messageData.content} />
+            </MessageContent>
+            <MessageAvatar name={messageData.name} src={messageData.avatar} />
+          </Message>
+          {:else}
+          {#each tools as toolData, index (toolData.id)}
+            {#if toolData.messageId === messageData.id}
+                <Tool>
+                  <ToolHeader
+                    type={toolData.type}
+                    state={toolData.state}
+                  />
+                  <ToolContent>
+                      <ToolInput input={JSON.parse(toolData.input)} />
+                      <ToolOutput output={JSON.parse(toolData.output)} />
+                  </ToolContent>
+                </Tool>
+            {/if}
+          {/each}
+          {/if}
         {:else}
-          <MessageContent>{messageData.content}</MessageContent>
+          <Message from={messageData.sender}>
+            <MessageContent>
+              {messageData.content}
+            </MessageContent>
+            <MessageAvatar name={messageData.name} src={messageData.avatar} />
+          </Message>
         {/if}
-        <MessageAvatar name={messageData.name} src={messageData.avatar} />
-      </Message>
     {/each}
   </ConversationContent>
   <ConversationScrollButton />

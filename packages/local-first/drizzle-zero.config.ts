@@ -5,13 +5,13 @@ import * as drizzleSchema from "@temporal-vercel-demo/database";
 
 export const schema = drizzleZeroConfig(drizzleSchema, {
   tables: {
-    conversations: {
+    ConversationSchema: {
       id: true,
       title: true,
       createdAt: true,
       updatedAt: true
     },
-    messages: {
+    MessageSchema: {
       id: true,
       conversationId: true,
       sender: true,
@@ -20,9 +20,10 @@ export const schema = drizzleZeroConfig(drizzleSchema, {
       name: true,
       createdAt: true
     },
-    tools: {
+    ToolSchema: {
       id: true,
       messageId: true,
+      conversationId: true,
       type: true,
       state: true,
       input: true,

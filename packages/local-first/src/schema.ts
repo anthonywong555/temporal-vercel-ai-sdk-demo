@@ -12,7 +12,7 @@ type AuthData = {
 
 export const permissions = definePermissions<AuthData, Schema>(schema, () => {
   return {
-    conversations: {
+    ConversationSchema: {
       row: {
         select: ANYONE_CAN,
         insert: ANYONE_CAN,
@@ -23,7 +23,7 @@ export const permissions = definePermissions<AuthData, Schema>(schema, () => {
         delete: ANYONE_CAN
       }
     },
-    messages: {
+    MessageSchema: {
       row: {
         select: ANYONE_CAN,
         insert: ANYONE_CAN,
@@ -34,7 +34,7 @@ export const permissions = definePermissions<AuthData, Schema>(schema, () => {
         delete: ANYONE_CAN
       }
     },
-    tools: {
+    ToolSchema: {
       row: {
         select: ANYONE_CAN,
         insert: ANYONE_CAN,
