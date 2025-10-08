@@ -119,3 +119,5 @@
     @apply bg-background text-foreground;
   }
 }
+
+@source "../node_modules/svelte-streamdown/**/*";

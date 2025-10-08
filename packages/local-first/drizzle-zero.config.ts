@@ -19,6 +19,17 @@ export const schema = drizzleZeroConfig(drizzleSchema, {
       avatar: true,
       name: true,
       createdAt: true
+    },
+    tools: {
+      id: true,
+      messageId: true,
+      type: true,
+      state: true,
+      input: true,
+      output: true,
+      errorText: true,
+      createdAt: true,
+      updatedAt: true,
     }
   },
   casing: "snake_case"

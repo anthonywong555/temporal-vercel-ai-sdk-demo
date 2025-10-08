@@ -1,10 +1,12 @@
-import { Context, CancelledFailure, heartbeat } from "@temporalio/activity";
-import { generateText, LanguageModel, jsonSchema, stepCountIs, type ModelMessage } from "ai";
+import { randomUUID } from 'crypto';
+import { Context, CancelledFailure, heartbeat, log } from "@temporalio/activity";
+import { streamText, generateText, LanguageModel, jsonSchema, stepCountIs, type ModelMessage } from "ai";
 import { createOpenAI, openai } from "@ai-sdk/openai";
 import { createAnthropic, anthropic } from "@ai-sdk/anthropic";
 import type { GenerateTextRequest } from "./types";
 import { trace, context } from "@opentelemetry/api";
-
+import { DrizzleClient } from "@temporal-vercel-demo/database";
+import { TEMPORAL_BOT } from "@temporal-vercel-demo/common";
 
 export const PROVIDER_OPEN_AI = 'OPEN_AI';
 export const PROVIDER_ANTHROPIC = 'ANTHROPIC';
@@ -16,10 +18,12 @@ export class InvalidProviderError extends Error {
 }
 
 export class AIClient {
-  provider: string
+  provider: string;
+  drizzleClient: DrizzleClient
 
-  constructor(provider: string) {
+  constructor(provider: string, dr: DrizzleClient) {
     this.provider = provider;
+    this.drizzleClient = dr;
   }
 
   formatTools(tools:any = {}) {
@@ -34,6 +38,62 @@ export class AIClient {
       }
     }
     return formattedTools;
+  }
+  async streamText(aRequest: GenerateTextRequest) {
+    const tracer = trace.getTracer('@temporalio/interceptor-workflow');
+    const { model, prompt = '', messages = [], tools = {}, toolChoice } = aRequest;
+    let targetModel:LanguageModel;
+
+    if(this.provider === PROVIDER_ANTHROPIC) {
+      targetModel = anthropic(model);
+    } else if(this.provider === PROVIDER_OPEN_AI) {
+      targetModel = openai(model);
+    } else {
+      throw new InvalidProviderError();
+    }
+
+    const result = await streamText({
+      model: targetModel,
+      tools: this.formatTools(tools),
+      ...(messages.length > 0 ? {messages} : {prompt}),
+      stopWhen: stepCountIs(1),
+      experimental_telemetry: {
+        tracer
+      }
+    });
+
+    const activityContext = Context.current();
+    //const id = randomUUID();
+    let messageId = ''
+    let content = ''
+    for await (const chunk of result.textStream) {
+      content += chunk;
+
+      // TODO: Ideally use upsert, but getting some 🐞.
+      if(messageId === '') {
+        const test = await this.drizzleClient.createMessage(
+          {
+            conversationId: activityContext.info.workflowExecution.workflowId,
+            sender: 'assistant',
+            content,
+            avatar: "https://github.com/shadcn.png",
+            name: TEMPORAL_BOT
+          }
+        );
+
+        messageId = test[0].id;
+        
+      } else {
+        await this.drizzleClient.updateMessage(
+          {
+            content
+          },
+          messageId
+        );
+      }
+    }
+
+    return await result.response;
   }
 
   async generateText(aRequest: GenerateTextRequest) {

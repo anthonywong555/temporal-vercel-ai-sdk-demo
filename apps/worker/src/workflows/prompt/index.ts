@@ -4,7 +4,7 @@ import { createAIActivities } from "@temporal-vercel-demo/ai";
 import { createDrizzleActivites } from "@temporal-vercel-demo/database";
 import { chainActivities } from "../utils";
 
-const { aiGenerateText: openaiGenerateText } = proxyActivities<ReturnType<typeof createAIActivities>>({
+const { aiGenerateText: openaiGenerateText, aiStreamText: openaiStreamText } = proxyActivities<ReturnType<typeof createAIActivities>>({
   scheduleToCloseTimeout: '2 minute',
   taskQueue: OPEN_AI_TASK_QUEUE,
   retry: {
@@ -12,7 +12,7 @@ const { aiGenerateText: openaiGenerateText } = proxyActivities<ReturnType<typeof
   }
 });
 
-const { aiGenerateText: anthropicGenerateText } = proxyActivities<ReturnType<typeof createAIActivities>>({
+const { aiGenerateText: anthropicGenerateText, aiStreamText: anthropicStreamText } = proxyActivities<ReturnType<typeof createAIActivities>>({
   scheduleToCloseTimeout: '2 minute',
   taskQueue: ANTHROPIC_TASK_QUEUE,
   retry: {
@@ -73,6 +73,44 @@ export async function prompt(request: PromptRequest): Promise<string> {
     });
 
     return aiMessage;    
+  } catch(e) {
+    throw new ApplicationFailure('');
+  }
+}
+
+export async function promptStreaming(request: PromptRequest){
+  try {
+    const { prompt } = request;
+
+    await createConversation({
+      id: workflowInfo().workflowId,
+      title: `${workflowInfo().workflowType}-${workflowInfo().workflowId.substring(0, 4)}`
+    });
+
+    await createMessage({
+      conversationId: workflowInfo().workflowId,
+      sender: 'user',
+      content: prompt,
+      name: USER_NAME,
+      avatar: "https://github.com/haydenbleasel.png"
+    });
+
+    const result = await chainActivities({
+      activities: [
+        () => openaiStreamText.executeWithOptions({
+          summary: 'OpenAI.StreamText',
+        }, [{
+          model: 'gpt-4o-mini',
+          prompt
+        }]),
+        () => anthropicStreamText.executeWithOptions({
+          summary: 'Anthropic.StreamText'
+        }, [{
+          model: 'claude-3-7-sonnet-20250219',
+          prompt
+        }])
+      ]
+    }); 
   } catch(e) {
     throw new ApplicationFailure('');
   }

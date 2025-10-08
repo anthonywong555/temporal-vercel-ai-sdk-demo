@@ -61,18 +61,18 @@ async function run() {
 
     /* Activities Dependency Injection */
 
-    // OpenAI
-    const OPENAI_WORKER_PORT = getEnv(env, 'OPENAI_WORKER_PORT', '7013');
-    const openAIClient = new AIClient(PROVIDER_OPEN_AI);
-
-    // Anthropic
-    const ANTHROPIC_WORKER_PORT = getEnv(env, 'ANTHROPIC_WORKER_PORT', '7014');
-    const anthropicAIClient = new AIClient(PROVIDER_ANTHROPIC);
-
     // Drizzle
     const DATABASE_URL = getEnv(env, 'DATABASE_URL');
     const DRIZZLE_WORKER_PORT = getEnv(env, 'DRIZZLE_WORKER_PORT', '7002');
     const drizzleClient = new DrizzleClient(DATABASE_URL);
+
+    // OpenAI
+    const OPENAI_WORKER_PORT = getEnv(env, 'OPENAI_WORKER_PORT', '7013');
+    const openAIClient = new AIClient(PROVIDER_OPEN_AI, drizzleClient);
+
+    // Anthropic
+    const ANTHROPIC_WORKER_PORT = getEnv(env, 'ANTHROPIC_WORKER_PORT', '7014');
+    const anthropicAIClient = new AIClient(PROVIDER_ANTHROPIC, drizzleClient);
 
     const workers: Worker[] = await Promise.all([
       // General

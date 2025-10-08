@@ -30,6 +30,7 @@
     MessageContent,
   } from "$lib/components/ai-elements/message/index.js";
   import { MessageSquare, SearchIcon } from "@lucide/svelte";
+  import { Response } from "$lib/components/ai-elements/response";
   import { Query } from 'zero-svelte';
 	import { get_z } from '$lib/z.svelte';
 
@@ -56,28 +57,22 @@
   let errorToolData = {};
   // Reactive state using Svelte 5 runes
   //let visibleMessages = $state<MessageData[]>([]);
-
 </script>
 
 <Conversation class="h-full">
   <ConversationContent>
-    {#if messages.length === 0}
-      <ConversationEmptyState
-        description="Messages will appear here as the conversation progresses."
-        title="Start a conversation"
-      >
-        {#snippet icon()}
-          <MessageSquare class="size-6" />
-        {/snippet}
-      </ConversationEmptyState>
-    {:else}
-      {#each messages as messageData, index (messageData.id)}
-        <Message from={messageData.sender}>
+    {#each messages as messageData, index (messageData.id)}
+      <Message from={messageData.sender}>
+        {#if messageData.content && messageData.sender === 'assistant'}
+          <MessageContent>
+            <Response content={messageData.content} />
+          </MessageContent>
+        {:else}
           <MessageContent>{messageData.content}</MessageContent>
-          <MessageAvatar name={messageData.name} src={messageData.avatar} />
-        </Message>
-      {/each}
-    {/if}
+        {/if}
+        <MessageAvatar name={messageData.name} src={messageData.avatar} />
+      </Message>
+    {/each}
   </ConversationContent>
   <ConversationScrollButton />
 </Conversation>
