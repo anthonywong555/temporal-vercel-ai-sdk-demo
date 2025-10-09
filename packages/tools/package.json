@@ -14,13 +14,16 @@
   },
   "dependencies": {
     "@temporal-vercel-demo/common": "workspace:*",
+    "@temporal-vercel-demo/database": "workspace:*",
     "ai": "catalog:",
     "@ai-sdk/anthropic": "catalog:",
     "@ai-sdk/google": "catalog:",
     "@ai-sdk/openai": "catalog:",
     "@temporalio/activity": "catalog:",
     "@opentelemetry/api": "catalog:",
-    "zod": "catalog:"
+    "zod": "catalog:",
+    "drizzle-orm": "catalog:",
+    "pg": "catalog:"
   },
   "devDependencies": {
     "eslint": "catalog:",

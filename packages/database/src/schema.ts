@@ -1,5 +1,4 @@
-import { relations, sql } from "drizzle-orm";
-import { integer, pgTable, serial, text, uniqueIndex, pgEnum, timestamp, uuid, primaryKey, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, text, pgEnum, timestamp, uuid } from "drizzle-orm/pg-core";
 
 //Source: https://orm.drizzle.team/docs/sql-schema-declaration
 

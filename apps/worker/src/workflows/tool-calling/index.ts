@@ -1,4 +1,4 @@
-import { ApplicationFailure, proxyActivities, workflowInfo } from '@temporalio/workflow';
+import { ApplicationFailure, proxyActivities, sleep, workflowInfo } from '@temporalio/workflow';
 import { GENERAL_TASK_QUEUE, ANTHROPIC_TASK_QUEUE, 
     OPEN_AI_TASK_QUEUE, WeatherSchema, 
     AttractionsSchema, PromptRequest,
@@ -106,7 +106,7 @@ export async function toolCalling(request: PromptRequest):Promise<string> {
           if(type === 'tool-call') {
             const { toolName, toolCallId, input } = content;
             const activity = activityMap[toolName];
-            const toolResult = await activity(input);
+            const toolResult = await activity(input, toolCallId);
             messages.push({
               role: 'tool',
               content: [{
@@ -319,17 +319,19 @@ export async function toolCallingStreaming(request: PromptRequest):Promise<strin
               type: toolName,
               input: input,
               messageId: assistantMessage[0].id,
-              state: "input-available"
+              state: "input-streaming"
             }, {
               id: toolCallId,
               conversationId: workflowInfo().workflowId,
               type: toolName,
               input: input,
               messageId: assistantMessage[0].id,
-              state: "input-available"
+              state: "input-streaming"
             });
 
-            const toolResult = await activity(input);
+            await sleep('10 sec');
+            
+            const toolResult = await activity(input, toolCallId);
 
             await upsertTool({
               id: toolCallId,

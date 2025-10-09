@@ -41,7 +41,7 @@ catalogs:
       version: 8.15.5
     ai:
       specifier: ^5.0.59
-      version: 5.0.60
+      version: 5.0.61
     drizzle-kit:
       specifier: ^0.31.5
       version: 0.31.5
@@ -122,7 +122,7 @@ importers:
         version: 1.13.0
       ai:
         specifier: ^5.0.59
-        version: 5.0.60(zod@4.1.12)
+        version: 5.0.61(zod@4.1.12)
       isomorphic-dompurify:
         specifier: ^2.28.0
         version: 2.28.0(postcss@8.5.6)
@@ -300,7 +300,7 @@ importers:
         version: 1.13.0
       ai:
         specifier: 'catalog:'
-        version: 5.0.60(zod@4.1.12)
+        version: 5.0.61(zod@4.1.12)
       triple-beam:
         specifier: ^1.4.1
         version: 1.4.1
@@ -373,7 +373,7 @@ importers:
         version: 1.13.0
       ai:
         specifier: 'catalog:'
-        version: 5.0.60(zod@4.1.12)
+        version: 5.0.61(zod@4.1.12)
     devDependencies:
       eslint:
         specifier: 'catalog:'
@@ -499,12 +499,21 @@ importers:
       '@temporal-vercel-demo/common':
         specifier: workspace:*
         version: link:../common
+      '@temporal-vercel-demo/database':
+        specifier: workspace:*
+        version: link:../database
       '@temporalio/activity':
         specifier: 'catalog:'
         version: 1.13.0
       ai:
         specifier: 'catalog:'
-        version: 5.0.60(zod@4.1.12)
+        version: 5.0.61(zod@4.1.12)
+      drizzle-orm:
+        specifier: 'catalog:'
+        version: 0.44.6(@opentelemetry/api@1.9.0)(@types/pg@8.15.5)(pg@8.16.3)(postgres@3.4.7)
+      pg:
+        specifier: 'catalog:'
+        version: 8.16.3
       zod:
         specifier: 'catalog:'
         version: 4.1.12
@@ -529,8 +538,8 @@ packages:
     peerDependencies:
       zod: ^3.25.76 || ^4.1.8
 
-  '@ai-sdk/gateway@1.0.33':
-    resolution: {integrity: sha512-v9i3GPEo4t3fGcSkQkc07xM6KJN75VUv7C1Mqmmsu2xD8lQwnQfsrgAXyNuWe20yGY0eHuheSPDZhiqsGKtH1g==}
+  '@ai-sdk/gateway@1.0.34':
+    resolution: {integrity: sha512-Vc/4fGlAW2uGmz6DnbRB9b7kdkbk4DQYNDYNdr/NHJxoaLsdNF3CE8i172rZ47+jEU2hGibcn5yivbgvjMi8Ig==}
     engines: {node: '>=18'}
     peerDependencies:
       zod: ^3.25.76 || ^4.1.8
@@ -1140,8 +1149,8 @@ packages:
     peerDependencies:
       tslib: '2'
 
-  '@jsonjoy.com/json-pack@1.17.0':
-    resolution: {integrity: sha512-7NST56/cM/wC2qD9NqUanPz0KiuyDxRKasG3X46iz3b0V8dvdexuGyCOBZCMdrHYaro6+w/H2i6EnJdqzKb69w==}
+  '@jsonjoy.com/json-pack@1.18.0':
+    resolution: {integrity: sha512-Wql75nw7QEjejpPuOu/LtgYgG7VC3uGho4rICqIeoXdpoqjoQ/hrc195Dms183p4a7cNtjfutcHGdr/2TUVChA==}
     engines: {node: '>=10.0'}
     peerDependencies:
       tslib: '2'
@@ -2872,8 +2881,8 @@ packages:
   '@ungap/structured-clone@1.3.0':
     resolution: {integrity: sha512-WmoN8qaIAo7WTYWbAZuG8PYEhn5fkz7dZrqTBZ7dtt//lL2Gwms1IcnQ5yHqjDfX8Ft5j4YzDM23f87zBfDe9g==}
 
-  '@vercel/oidc@3.0.1':
-    resolution: {integrity: sha512-V/YRVrJDqM6VaMBjRUrd6qRMrTKvZjHdVdEmdXsOZMulTa3iK98ijKTc3wldBmst6W5rHpqMoKllKcBAHgN7GQ==}
+  '@vercel/oidc@3.0.2':
+    resolution: {integrity: sha512-JekxQ0RApo4gS4un/iMGsIL1/k4KUBe3HmnGcDvzHuFBdQdudEJgTqcsJC7y6Ul4Yw5CeykgvQbX2XeEJd0+DA==}
     engines: {node: '>= 20'}
 
   '@webassemblyjs/ast@1.14.1':
@@ -2963,8 +2972,8 @@ packages:
     resolution: {integrity: sha512-MnA+YT8fwfJPgBx3m60MNqakm30XOkyIoH1y6huTQvC0PwZG7ki8NacLBcrPbNoo8vEZy7Jpuk7+jMO+CUovTQ==}
     engines: {node: '>= 14'}
 
-  ai@5.0.60:
-    resolution: {integrity: sha512-80U/3kmdBW6g+JkLXpz/P2EwkyEaWlPlYtuLUpx/JYK9F7WZh9NnkYoh1KvUi1Sbpo0NyurBTvX0a2AG9mmbDA==}
+  ai@5.0.61:
+    resolution: {integrity: sha512-a+NtNgxjMiGvL46/+v7iNbKHLAg8VDheNhYFe9lL3MPiL9W5DNH45wMaahteCYS4WgoFgdQa2zz4CM5lkiXuOA==}
     engines: {node: '>=18'}
     peerDependencies:
       zod: ^3.25.76 || ^4.1.8
@@ -5989,11 +5998,11 @@ snapshots:
       '@ai-sdk/provider-utils': 3.0.10(zod@4.1.12)
       zod: 4.1.12
 
-  '@ai-sdk/gateway@1.0.33(zod@4.1.12)':
+  '@ai-sdk/gateway@1.0.34(zod@4.1.12)':
     dependencies:
       '@ai-sdk/provider': 2.0.0
       '@ai-sdk/provider-utils': 3.0.10(zod@4.1.12)
-      '@vercel/oidc': 3.0.1
+      '@vercel/oidc': 3.0.2
       zod: 4.1.12
 
   '@ai-sdk/google@2.0.17(zod@4.1.12)':
@@ -6497,7 +6506,7 @@ snapshots:
     dependencies:
       tslib: 2.8.1
 
-  '@jsonjoy.com/json-pack@1.17.0(tslib@2.8.1)':
+  '@jsonjoy.com/json-pack@1.18.0(tslib@2.8.1)':
     dependencies:
       '@jsonjoy.com/base64': 1.1.2(tslib@2.8.1)
       '@jsonjoy.com/buffers': 1.2.0(tslib@2.8.1)
@@ -8774,7 +8783,7 @@ snapshots:
 
   '@ungap/structured-clone@1.3.0': {}
 
-  '@vercel/oidc@3.0.1': {}
+  '@vercel/oidc@3.0.2': {}
 
   '@webassemblyjs/ast@1.14.1':
     dependencies:
@@ -8882,9 +8891,9 @@ snapshots:
 
   agent-base@7.1.4: {}
 
-  ai@5.0.60(zod@4.1.12):
+  ai@5.0.61(zod@4.1.12):
     dependencies:
-      '@ai-sdk/gateway': 1.0.33(zod@4.1.12)
+      '@ai-sdk/gateway': 1.0.34(zod@4.1.12)
       '@ai-sdk/provider': 2.0.0
       '@ai-sdk/provider-utils': 3.0.10(zod@4.1.12)
       '@opentelemetry/api': 1.9.0
@@ -10389,7 +10398,7 @@ snapshots:
 
   memfs@4.49.0:
     dependencies:
-      '@jsonjoy.com/json-pack': 1.17.0(tslib@2.8.1)
+      '@jsonjoy.com/json-pack': 1.18.0(tslib@2.8.1)
       '@jsonjoy.com/util': 1.9.0(tslib@2.8.1)
       glob-to-regex.js: 1.2.0(tslib@2.8.1)
       thingies: 2.5.0(tslib@2.8.1)
