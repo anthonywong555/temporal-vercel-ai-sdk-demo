@@ -61,9 +61,9 @@ export async function prompt(request: PromptRequest): Promise<string> {
       ]
     });
 
-    const aiMessage = result?.steps[0]?.content[0]?.type === 'text' ? 
-      result?.steps[0]?.content[0]?.text : 
-      '';;
+    const aiMessage = result?.responseMessages[0]?.content[0]?.type === 'text' ? 
+      result?.responseMessages[0]?.content[0]?.text : 
+      '';
 
     await createMessage({
       conversationId: workflowInfo().workflowId,

@@ -117,7 +117,8 @@ export class AIClient {
     }
 
     // TODO: Figure out how to handle failover
-    return await generateText({
+    
+    const result = await generateText({
       model: targetModel,
       tools: this.formatTools(tools),
       ...(messages.length > 0 ? {messages} : {prompt}),
@@ -126,6 +127,17 @@ export class AIClient {
       experimental_telemetry: {
         tracer
       }
-    })
+    });
+
+    const finishReason = await result.finishReason;
+    const responseMessages = (await result.response).messages;
+    const toolCalls = await result.toolCalls;
+    // Format the response
+    return JSON.parse(JSON.stringify({
+      finishReason,
+      responseMessages,
+      toolCalls
+    }))
+
   }
 }

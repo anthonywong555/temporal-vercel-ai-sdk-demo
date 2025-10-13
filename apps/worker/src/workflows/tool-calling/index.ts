@@ -6,7 +6,7 @@ import { GENERAL_TASK_QUEUE, ANTHROPIC_TASK_QUEUE,
     TEMPORAL_BOT} from '@temporal-vercel-demo/common';
 import { createAIActivities } from "@temporal-vercel-demo/ai";
 import * as toolActivities from "@temporal-vercel-demo/tools";
-import { type ModelMessage, type GenerateTextResult, type ToolContent } from "ai";
+import { type ModelMessage, type ToolContent } from "ai";
 import { createDrizzleActivites } from "@temporal-vercel-demo/database";
 import { z } from "zod/v4";
 import { chainActivities } from "../utils";
@@ -71,7 +71,7 @@ export async function toolCalling(request: PromptRequest):Promise<string> {
     };
 
     while(true) {
-      const agentResponse:GenerateTextResult<any, never> = await chainActivities({
+      const agentResponse = await chainActivities({
         activities: [
           () => openaiGenerateText.executeWithOptions({
             summary: 'OpenAI.GenerateText',
@@ -91,16 +91,16 @@ export async function toolCalling(request: PromptRequest):Promise<string> {
       });
 
       // Add LLM generated messages to the message history
-      messages.push(...agentResponse?.steps[0]?.response?.messages);
+      messages.push(...agentResponse?.responseMessages);
 
       // Assuming it's the first steps
       //agentText = agentResponse?.steps[0]?.text;
-      const { finishReason } = agentResponse?.steps[0];
+      const { finishReason } = agentResponse;
 
       if(finishReason === 'tool-calls') {
         // Schedule Activities
         //const toolCalls = agentResponse?.steps[0]?.content[0]?
-        for(const content of agentResponse?.steps[0]?.content) {
+        for(const content of agentResponse?.responseMessages[0]?.content) {
           const { type } = content;
 
           if(type === 'tool-call') {
@@ -126,8 +126,8 @@ export async function toolCalling(request: PromptRequest):Promise<string> {
       } else if(finishReason === 'stop') {
         // Exit the loop when the model doesn't request to use any more tools
 
-        return agentResponse?.steps[0]?.content[0]?.type === 'text' ? 
-          agentResponse?.steps[0]?.content[0]?.text : '';
+        return agentResponse?.responseMessages[0]?.content[0]?.type === 'text' ? 
+          agentResponse?.responseMessages[0]?.content[0]?.text : '';
       }
     }
   } catch(e) {
@@ -160,7 +160,7 @@ export async function parallelToolCalling(request: PromptRequest) {
     };
 
     while(true) {
-      const agentResponse:GenerateTextResult<any, never> = await chainActivities({
+      const agentResponse = await chainActivities({
         activities: [
           () => openaiGenerateText.executeWithOptions({
             summary: 'OpenAI.GenerateText',
@@ -180,12 +180,13 @@ export async function parallelToolCalling(request: PromptRequest) {
       });
 
       // Add LLM generated messages to the message history
-      messages.push(...agentResponse?.steps[0]?.response?.messages);
+      messages.push(...agentResponse?.responseMessages);
 
-      const { finishReason, content: contents } = agentResponse?.steps[0];
+      const { finishReason } = agentResponse;
+      const contents = agentResponse?.responseMessages[0].content;
 
       if(finishReason === 'tool-calls') {
-        const toolCallPromises = contents.map((content) => {
+        const toolCallPromises = contents.map((content: { type?: any; toolName?: any; input?: any; }) => {
           if(content?.type === 'tool-call') {
             const { toolName, input } = content;
             const activity = activityMap[toolName];

@@ -1,6 +1,6 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
-  import ChatWidget from "$lib/components/chat-widget.svelte";
+  import WorkflowChat from '$lib/components/workflow-chat.svelte';
   import { ScrollArea } from "$lib/components/ui/scroll-area/index.js";
   import {
     PromptInput,
@@ -11,6 +11,19 @@
 	type PromptInputMessage,
   } from "$lib/components/ai-elements/prompt-input";
   import { createChat } from "./chat/data.remote";
+	import type { PageData } from './$types';
+
+  let { data }: { data: PageData } = $props();
+
+  async function startChat({workflowType, prompt}: {workflowType: string, prompt: string}) {
+    const id = crypto.randomUUID();
+    const workflowId = await createChat({
+      id,
+      prompt,
+      workflowType
+    });
+    await goto(`/chat/${workflowId}`);
+  }
 
   async function handleSubmit (message: PromptInputMessage) {
     const { text } = message;
@@ -29,11 +42,11 @@
 </script>
 
 <ScrollArea class="h-[79vh] w-[full] rounded-md border p-4">
-  <!--<ChatWidget />-->
+  <WorkflowChat workflows={data.workflows} {startChat}/>
 </ScrollArea>
 <PromptInput onSubmit={handleSubmit}>
   <PromptInputBody>
-    <PromptInputTextarea />
+    <PromptInputTextarea placeholder="📖 Choose Your Own Adventure ⚔️" />
   </PromptInputBody>
   <PromptInputToolbar class="flex justify-end">
     <PromptInputSubmit />
