@@ -7,7 +7,7 @@
     "lint": "turbo run lint",
     "format": "prettier --write .",
     "check-types": "turbo run check-types",
-    "clean": "turbo run clean && rm -rf .turbo node_modules/ pnpm-lock.yaml docker/ zero/*",
+    "clean": "turbo run clean && rm -rf .turbo node_modules/ pnpm-lock.yaml docker/ && find zero -maxdepth 1 -type f ! -name 'README.md' -delete",
     "dev:zero-cache": "zero-cache-dev",
     "prod:zero-deply": "zero-deploy-permissions"
   },

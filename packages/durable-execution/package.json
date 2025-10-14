@@ -1,5 +1,5 @@
 {
-  "name": "@temporal-vercel-demo/temporalio",
+  "name": "@temporal-vercel-demo/durable-execution",
   "version": "0.0.1",
   "license": "MIT",
   "main": "./dist/index.js",

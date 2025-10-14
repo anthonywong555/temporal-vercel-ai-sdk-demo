@@ -1,5 +1,5 @@
 import { command } from '$app/server';
-import { connectToTemporal } from "@temporal-vercel-demo/temporalio";
+import { connectToTemporal } from "@temporal-vercel-demo/durable-execution";
 import { ChatCreateRequestSchema, GENERAL_TASK_QUEUE } from "@temporal-vercel-demo/common";
 import { env } from "$env/dynamic/private";
 
@@ -15,4 +15,4 @@ export const createChat = command(ChatCreateRequestSchema, async(chatCreateReque
   });
 
   return handle.workflowId;
-})
+});

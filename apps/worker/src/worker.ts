@@ -9,7 +9,7 @@ import {
   OPEN_AI_TASK_QUEUE,
   ANTHROPIC_TASK_QUEUE
 } from '@temporal-vercel-demo/common';
-import { getConnectionOptions } from '@temporal-vercel-demo/temporalio';
+import { getConnectionOptions } from '@temporal-vercel-demo/durable-execution';
 import { getWorkflowOptions, withOptionalStatusServer } from './env';
 import { DefaultLogger, NativeConnection, Runtime, Worker, makeTelemetryFilterString } from '@temporalio/worker';
 import {

@@ -6,6 +6,12 @@ export const ChatCreateRequestSchema = z.object({
   workflowType: z.string().describe('The workflow type to use with the prompt.')
 });
 
+export const CreateWorkflowRequest = z.object({
+  id: z.string().describe('Workflow Id.'),
+  workflowType: z.string().describe('The workflow type to use with the prompt.'),
+  args: z.any(),
+});
+
 export interface PromptRequest {
   prompt: string;
 }

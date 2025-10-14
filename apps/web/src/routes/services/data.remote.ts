@@ -1,6 +1,6 @@
 import { query } from '$app/server';
 import { getEnv } from "@temporal-vercel-demo/common";
-import { getConnectionOptions } from "@temporal-vercel-demo/temporalio";
+import { getConnectionOptions } from "@temporal-vercel-demo/durable-execution";
 import { env } from "$env/dynamic/private";
 import { Connection } from "@temporalio/client";
 

@@ -54,7 +54,7 @@
         "@shikijs/themes": "^3.13.0",
         "@temporal-vercel-demo/common": "workspace:*",
         "@temporal-vercel-demo/local-first": "workspace:*",
-        "@temporal-vercel-demo/temporalio": "workspace:*",
+        "@temporal-vercel-demo/durable-execution": "workspace:*",
         "@temporalio/client": "catalog:",
         "ai": "^5.0.59",
         "isomorphic-dompurify": "^2.28.0",

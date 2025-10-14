@@ -27,7 +27,7 @@
     "@temporal-vercel-demo/ai": "workspace:*",
     "@temporal-vercel-demo/common": "workspace:*",
     "@temporal-vercel-demo/database": "workspace:*",
-    "@temporal-vercel-demo/temporalio": "workspace:*",
+    "@temporal-vercel-demo/durable-execution": "workspace:*",
     "@temporal-vercel-demo/tools": "workspace:*",
     "@opentelemetry/api": "catalog:",
     "@opentelemetry/auto-instrumentations-node": "^0.55.0",
