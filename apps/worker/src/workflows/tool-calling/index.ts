@@ -11,13 +11,13 @@ import { createDrizzleActivites } from "@temporal-vercel-demo/database";
 import { z } from "zod/v4";
 import { chainActivities } from "../utils";
 
-const activityMap = proxyActivities<typeof toolActivities>({
+const { executeTool } = proxyActivities<typeof toolActivities>({
   startToCloseTimeout: '2 minute',
   taskQueue: GENERAL_TASK_QUEUE,
   retry: {
     maximumAttempts: 5
   }
-}) as unknown as Record<string, (...args: any[]) => Promise<any>>;
+})
 
 
 const { aiGenerateText: openaiGenerateText, aiStreamText: openaiStreamText } = proxyActivities<ReturnType<typeof createAIActivities>>({
@@ -46,6 +46,20 @@ const { createConversation, createMessage, upsertTool } = proxyActivities<Return
 export async function toolCalling(request: PromptRequest):Promise<string> {
   try {
     const { prompt } = request;
+
+    await createConversation({
+      id: workflowInfo().workflowId,
+      title: `${workflowInfo().workflowType}-${workflowInfo().workflowId.substring(0, 4)}`
+    });
+
+    await createMessage({
+      conversationId: workflowInfo().workflowId,
+      sender: 'user',
+      content: prompt,
+      name: USER_NAME,
+      avatar: "https://github.com/haydenbleasel.png"
+    });
+
     // 💬 Messages
     const messages:ModelMessage[] = [
       {
@@ -104,9 +118,39 @@ export async function toolCalling(request: PromptRequest):Promise<string> {
           const { type } = content;
 
           if(type === 'tool-call') {
+            // Create a Message Place Holder
+            const assistantMessage = await createMessage({
+              conversationId: workflowInfo().workflowId,
+              sender: 'assistant',
+              content: '',
+              name: TEMPORAL_BOT,
+              avatar: "https://github.com/shadcn.png"
+            });
+
             const { toolName, toolCallId, input } = content;
-            const activity = activityMap[toolName];
-            const toolResult = await activity(input, toolCallId);
+
+            await upsertTool({
+              id: toolCallId,
+              conversationId: workflowInfo().workflowId,
+              type: toolName,
+              input: input,
+              messageId: assistantMessage[0].id,
+              state: "input-streaming"
+            }, {
+              id: toolCallId,
+              conversationId: workflowInfo().workflowId,
+              type: toolName,
+              input: input,
+              messageId: assistantMessage[0].id,
+              state: "input-streaming"
+            });
+
+            const toolResult = await executeTool({
+              tool: toolName,
+              toolId: toolCallId,
+              args: input,
+            });
+
             messages.push({
               role: 'tool',
               content: [{
@@ -126,8 +170,17 @@ export async function toolCalling(request: PromptRequest):Promise<string> {
       } else if(finishReason === 'stop') {
         // Exit the loop when the model doesn't request to use any more tools
 
-        return agentResponse?.responseMessages[0]?.content[0]?.type === 'text' ? 
+        const aiMessage = agentResponse?.responseMessages[0]?.content[0]?.type === 'text' ? 
           agentResponse?.responseMessages[0]?.content[0]?.text : '';
+
+        await createMessage({
+          conversationId: workflowInfo().workflowId,
+          sender: 'assistant',
+          content: aiMessage,
+          avatar: "https://github.com/shadcn.png"
+        });
+
+        return aiMessage;
       }
     }
   } catch(e) {
@@ -138,6 +191,19 @@ export async function toolCalling(request: PromptRequest):Promise<string> {
 export async function parallelToolCalling(request: PromptRequest) {
   try {
     const { prompt } = request;
+
+    await createConversation({
+      id: workflowInfo().workflowId,
+      title: `${workflowInfo().workflowType}-${workflowInfo().workflowId.substring(0, 4)}`
+    });
+
+    await createMessage({
+      conversationId: workflowInfo().workflowId,
+      sender: 'user',
+      content: prompt,
+      name: USER_NAME,
+      avatar: "https://github.com/haydenbleasel.png"
+    });
 
     // 💬 Messages
     const messages:ModelMessage[] = [
@@ -186,11 +252,39 @@ export async function parallelToolCalling(request: PromptRequest) {
       const contents = agentResponse?.responseMessages[0].content;
 
       if(finishReason === 'tool-calls') {
-        const toolCallPromises = contents.map((content: { type?: any; toolName?: any; input?: any; }) => {
+        const toolCallPromises = contents.map(async (content: { toolCallId?: any; type?: any; toolName?: any; input?: any; }) => {
           if(content?.type === 'tool-call') {
-            const { toolName, input } = content;
-            const activity = activityMap[toolName];
-            return activity(input);
+            const assistantMessage = await createMessage({
+              conversationId: workflowInfo().workflowId,
+              sender: 'assistant',
+              content: '',
+              name: TEMPORAL_BOT,
+              avatar: "https://github.com/shadcn.png"
+            });
+
+            const { toolName, toolCallId, input } = content;
+
+            await upsertTool({
+              id: toolCallId,
+              conversationId: workflowInfo().workflowId,
+              type: toolName,
+              input: input,
+              messageId: assistantMessage[0].id,
+              state: "input-streaming"
+            }, {
+              id: toolCallId,
+              conversationId: workflowInfo().workflowId,
+              type: toolName,
+              input: input,
+              messageId: assistantMessage[0].id,
+              state: "input-streaming"
+            });
+
+            return executeTool({
+              tool: toolName,
+              toolId: toolCallId,
+              args: input,
+            });
           }
         });
 
@@ -220,7 +314,14 @@ export async function parallelToolCalling(request: PromptRequest) {
           content: buildContents
         });
       } else if(finishReason === 'stop') {
-        return contents[0].type === 'text' ? contents[0].text : '';
+        const aiMessage = contents[0].type === 'text' ? contents[0].text : '';
+        await createMessage({
+          conversationId: workflowInfo().workflowId,
+          sender: 'assistant',
+          content: aiMessage,
+          avatar: "https://github.com/shadcn.png"
+        });
+        return aiMessage;
       } else if(finishReason === 'error' || finishReason === 'unknown') {
         throw new ApplicationFailure('');
       }
@@ -313,7 +414,7 @@ export async function toolCallingStreaming(request: PromptRequest):Promise<strin
 
           if(type === 'tool-call') {
             const { toolName, toolCallId, input } = tool;
-            const activity = activityMap[toolName];
+
             await upsertTool({
               id: toolCallId,
               conversationId: workflowInfo().workflowId,
@@ -329,23 +430,13 @@ export async function toolCallingStreaming(request: PromptRequest):Promise<strin
               messageId: assistantMessage[0].id,
               state: "input-streaming"
             });
-
-            await sleep('10 sec');
             
-            const toolResult = await activity(input, toolCallId);
-
-            await upsertTool({
-              id: toolCallId,
-              conversationId: workflowInfo().workflowId,
-              type: toolName,
-              input: input,
-              output: toolResult,
-              messageId: assistantMessage[0].id,
-              state: "input-available"
-            }, {
-              output: toolResult,
-              state: "output-available"
+            const toolResult = await executeTool({
+              tool: toolName,
+              toolId: toolCallId,
+              args: input,
             });
+
             messages.push({
               role: 'tool',
               content: [{

@@ -1,64 +1,58 @@
-import { activityInfo, log, sleep } from "@temporalio/activity";
-import { AttractionsRequest, AttractionsResponse, LocationResponse, WeatherInformationRequest, WeatherRequest, WeatherResponse } from "@temporal-vercel-demo/common";
-import { openai } from "@ai-sdk/openai";
-import { anthropic } from "@ai-sdk/anthropic";
-import { generateText } from "ai";
+import { log, sleep } from "@temporalio/activity";
+import { ExecuteToolRequest } from "@temporal-vercel-demo/common";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { eq } from "drizzle-orm";
 import { ToolSchema } from "@temporal-vercel-demo/database";
+import * as tools from './tools';
+
+// Define a type that represents the tools module with string indexing
+type ToolsModule = {
+  [key: string]: (...args: any[]) => Promise<any>;
+};
+
+// Cast tools to the ToolsModule type
+const toolsWithIndex = tools as unknown as ToolsModule;
+
 
 const dbURL = process.env.DATABASE_URL ? process.env.DATABASE_URL : '';
 const dbClient = drizzle(dbURL);
 
-export async function weather(request: WeatherRequest, toolId: string):Promise<WeatherResponse> {
-  const {location} = request;
-  
-  await dbClient
-    .update(ToolSchema)
-    .set({ state: 'input-available' })
-    .where(eq(ToolSchema.id, toolId));
+export async function executeTool(request: ExecuteToolRequest) {
+  const { tool, toolId, args } = request;
 
-  await sleep('10 sec');
+  log.info(`Starting tool execution: ${tool}`);
 
-  return {
-    location,
-    temperature: 72 + Math.floor(Math.random() * 21) - 10
+  try {
+    // Save in DB
+    await dbClient
+      .update(ToolSchema)
+      .set({ state: 'input-available' })
+      .where(eq(ToolSchema.id, toolId));
+
+    // Add artificial sleep
+    await sleep('5 sec');
+
+    // Call the related tool based on tool value.
+    if(typeof toolsWithIndex[tool] === 'function') {
+      const result = await toolsWithIndex[tool](args, toolId);
+      await dbClient
+        .update(ToolSchema)
+        .set({ state: 'output-available', output: result })
+        .where(eq(ToolSchema.id, toolId));
+
+      return result;
+    } else {
+      throw new Error(`${tool} tool is not found`);
+    }
+
+  } catch(e) {
+    if(e instanceof Error) {
+      await dbClient
+        .update(ToolSchema)
+        .set({ state: 'output-error', errorText: e.message })
+        .where(eq(ToolSchema.id, toolId));
+
+      return e;
+    }
   }
-}
-
-export async function attractions(request: AttractionsRequest, toolId: string): Promise<AttractionsResponse> {
-  await dbClient
-    .update(ToolSchema)
-    .set({ state: 'input-available' })
-    .where(eq(ToolSchema.id, toolId));
-
-  const {location, temperature} = request;
-  const context = activityInfo();
-  const { attempt } = context;
-
-  const result = await generateText({
-    model: attempt % 2 === 0 ? openai('gpt-4o-mini') : anthropic('claude-3-5-haiku-latest'),
-    prompt: `What are 3 attractions in ${location} that I should see given it is ${temperature} outside?`
-  });
-
-  return {text: result.text};
-}
-
-export async function getLocation():Promise<LocationResponse> {
-  return {
-    city: 'New York'
-  }
-}
-
-export async function getWeatherInformation(request: WeatherInformationRequest) {
-  const weatherOptions = [
-    'sunny',
-    'cloudy',
-    'rainy',
-    'snowy',
-    'windy',
-  ];
-  return weatherOptions[
-    Math.floor(Math.random() * weatherOptions.length)
-  ];
 }

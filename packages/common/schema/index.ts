@@ -12,6 +12,12 @@ export const CreateWorkflowRequest = z.object({
   args: z.any(),
 });
 
+export interface ExecuteToolRequest {
+  tool: string;
+  toolId: string;
+  args: any;
+}
+
 export interface PromptRequest {
   prompt: string;
 }
