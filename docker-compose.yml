@@ -1,7 +1,6 @@
 services:
   postgres:
     image: postgres:16.2-alpine
-    container_name: postgres-boilerplate
     shm_size: 1g
     restart: always
     healthcheck:
@@ -26,7 +25,26 @@ services:
       - postgres_data:/var/lib/postgresql/data
       - ./docker:/docker-entrypoint-initdb.d
     networks:
+      home-network:
+        aliases:
+          - postgres.temporal-vercel-demo
+  zero:
+    image: rocicorp/zero:latest
+    environment:
+      - ZERO_REPLICA_FILE=/zero_data/zchat_replica.db
+      - ZERO_UPSTREAM_DB=postgresql://user:password@postgres.temporal-vercel-demo:5432/postgres
+      - ZERO_CVR_DB=postgresql://user:password@postgres.temporal-vercel-demo:5432/postgres
+      - ZERO_CHANGE_DB=postgresql://user:password@postgres.temporal-vercel-demo:5432/postgres
+      - LOG_LEVEL=debug
+    volumes:
+      - zero_data:/zero_data
+    ports:
+      - 4849:4848
+    networks:
       - home-network
+    depends_on:
+      postgres:
+        condition: service_healthy
   web:
     container_name: web-boilerplate
     platform: linux/amd64
@@ -53,6 +71,7 @@ services:
 
 volumes:
   postgres_data:
+  zero_data:
 
 networks:
   home-network:
