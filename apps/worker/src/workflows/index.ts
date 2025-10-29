@@ -7,6 +7,7 @@ import {
 
 export * from './prompt';
 export * from './tool-calling';
+export * from './saga';
 
 export const interceptors: WorkflowInterceptorsFactory = () => ({
   inbound: [new OpenTelemetryInboundInterceptor()],

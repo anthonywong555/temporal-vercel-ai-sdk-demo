@@ -32,6 +32,12 @@ export const load: PageLoad = ({ params }) => {
         description: 'Demostrate tooling calling, but with streaming.',
         workflowType: 'toolCallingStreaming',
         prompt: 'What is the weather in San Francisco and what should I do?'
+      },
+      {
+        title: 'Saga - Trip Booking',
+        description: 'Demostrate a saga pattern.',
+        workflowType: 'saga',
+        prompt: 'I would like to book a trip to Paris.'
       }
     ]
   }

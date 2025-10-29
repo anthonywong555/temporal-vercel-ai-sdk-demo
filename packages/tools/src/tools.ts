@@ -1,8 +1,26 @@
 import { activityInfo } from "@temporalio/activity";
-import { AttractionsRequest, AttractionsResponse, LocationResponse, WeatherInformationRequest, WeatherRequest, WeatherResponse } from "@temporal-vercel-demo/common";
+import { AttractionsRequest, AttractionsResponse, BookHotelRequest, BookHotelResponse, BuyPlaneTicketRequest, BuyPlaneTicketResponse, LocationResponse, RentCarRequest, RentCarResponse, WeatherInformationRequest, WeatherRequest, WeatherResponse } from "@temporal-vercel-demo/common";
 import { openai } from "@ai-sdk/openai";
 import { anthropic } from "@ai-sdk/anthropic";
 import { generateText } from "ai";
+
+export async function buyPlaneTicket(request: BuyPlaneTicketRequest):Promise<BuyPlaneTicketResponse> {
+  return {
+    success: true
+  }
+}
+
+export async function bookHotel(request: BookHotelRequest):Promise<BookHotelResponse> {
+  return {
+    success: true
+  }
+}
+
+export async function rentCar(request: RentCarRequest):Promise<RentCarResponse>{
+  return {
+    success: true
+  }
+}
 
 export async function weather(request: WeatherRequest):Promise<WeatherResponse> {
   const { location } = request;

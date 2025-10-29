@@ -27,6 +27,44 @@ type SchemaFromInterface<T> = ZodObject<{
  [K in keyof Partial<T>]: K extends keyof T ? ZodType<T[K]> : never;
 }>;
 
+export interface BuyPlaneTicketRequest {
+  fromCity: string;
+  toCity: string;
+}
+
+export const BuyPlaneTicketSchema = z.object({
+  fromCity: z.string().describe('Location from the city to depart.'),
+  toCity: z.string().describe('Location to the city to arrive.')
+}) satisfies SchemaFromInterface<BuyPlaneTicketRequest>;
+
+export interface BuyPlaneTicketResponse {
+  success: boolean;  
+}
+
+export interface BookHotelRequest {
+  toCity: string;
+}
+
+export const BookHotelSchema = z.object({
+  toCity: z.string().describe("Location to book a hotel")
+}) satisfies SchemaFromInterface<BookHotelRequest>;
+
+export interface BookHotelResponse {
+  success: boolean;
+}
+
+export interface RentCarRequest {
+  toCity: string;
+}
+
+export const RentCarSchema = z.object({
+  toCity: z.string().describe("Location to book a rental car.")
+}) satisfies SchemaFromInterface<RentCarRequest>;
+
+export interface RentCarResponse {
+  success: boolean;
+}
+
 export interface WeatherRequest {
   location: string;
 }
