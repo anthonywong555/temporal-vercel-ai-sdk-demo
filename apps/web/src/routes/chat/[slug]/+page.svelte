@@ -7,16 +7,31 @@
     PromptInputSubmit,
     PromptInputTextarea,
     PromptInputToolbar,
+	type ChatStatus,
 	type PromptInputMessage,
   } from "$lib/components/ai-elements/prompt-input";
   import type { PageProps } from "./$types";
+  import { update } from "../../services/durable-execution/data.remote";
 
   let { data }:PageProps = $props();
+  let status = $state<ChatStatus>("idle");
+  let input_prompt = $state("");
   const conversationId = $derived(data.id);
 
   async function handleSubmit(message: PromptInputMessage) {
+    console.log(conversationId);
     const { text } = message;
-    console.log(text);
+    if(text) {
+      await update({
+        id: conversationId,
+        updateDef: 'sendUserMessage',
+        updateArgs: {
+          role: 'user',
+          content: text
+        }
+      });
+      input_prompt = "";
+    }
   }
 </script>
 
@@ -26,9 +41,9 @@
 </ScrollArea>
 <PromptInput onSubmit={handleSubmit}>
   <PromptInputBody>
-    <PromptInputTextarea />
+    <PromptInputTextarea bind:value={input_prompt} />
   </PromptInputBody>
   <PromptInputToolbar class="flex justify-end">
-    <PromptInputSubmit />
+    <PromptInputSubmit {status} />
   </PromptInputToolbar>
 </PromptInput>

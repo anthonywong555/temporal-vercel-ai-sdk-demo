@@ -12,6 +12,12 @@ export const CreateWorkflowRequest = z.object({
   args: z.any(),
 });
 
+export const UpdateRequest = z.object({
+  id: z.string().describe('Workflow Id'),
+  updateDef: z.string().describe('The workflow update definition'),
+  updateArgs: z.any().describe('Workflow Update Payloads')
+});
+
 export const UpdateWithStartRequest = z.object({
   id: z.string().describe('Workflow Id'),
   workflowType: z.string().describe('The workflow type to execute.'),
@@ -47,6 +53,20 @@ type SchemaFromInterface<T> = ZodObject<{
  [K in keyof Partial<T>]: K extends keyof T ? ZodType<T[K]> : never;
 }>;
 
+export interface UndoBuyPlaneTicketRequest {
+  fromCity: string;
+  toCity: string;
+}
+
+export const UndoBuyPlaneTicketSchema = z.object({
+  fromCity: z.string().describe('Location from the city to depart.'),
+  toCity: z.string().describe('Location to the city to arrive.')
+}) satisfies SchemaFromInterface<UndoBuyPlaneTicketRequest>;
+
+export interface UndoBuyPlaneTicketResponse {
+  success: boolean; 
+}
+
 export interface BuyPlaneTicketRequest {
   fromCity: string;
   toCity: string;
@@ -69,9 +89,33 @@ export const BookHotelSchema = z.object({
   toCity: z.string().describe("Location to book a hotel")
 }) satisfies SchemaFromInterface<BookHotelRequest>;
 
+export interface UndoBookHotelRequest {
+  toCity: string;
+}
+
+export const UndoBookHotelSchema = z.object({
+  toCity: z.string().describe("Location to book a hotel")
+}) satisfies SchemaFromInterface<UndoBookHotelRequest>;
+
+export interface UndoBookHotelResponse {
+  success: boolean;
+}
+
 export interface BookHotelResponse {
   success: boolean;
 }
+
+export interface UndoRentCarRequest {
+  toCity: string;
+}
+
+export interface UndoRentCarResponse {
+  success: boolean;
+}
+
+export const UndoRentCarSchema = z.object({
+  toCity: z.string().describe("Location to book a rental car.")
+}) satisfies SchemaFromInterface<UndoBuyPlaneTicketRequest>;
 
 export interface RentCarRequest {
   toCity: string;

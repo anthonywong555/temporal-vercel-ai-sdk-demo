@@ -92,6 +92,8 @@ export class AIClient {
         );
       }
     }
+    const reasoning = await result.reasoning;
+    const reasoningText = await result.reasoningText;
     const finishReason = await result.finishReason;
     const responseMessages = (await result.response).messages;
     const toolCalls = await result.toolCalls;
@@ -99,7 +101,9 @@ export class AIClient {
     return JSON.parse(JSON.stringify({
       finishReason,
       responseMessages,
-      toolCalls
+      toolCalls,
+      reasoning,
+      reasoningText
     }))
   }
 

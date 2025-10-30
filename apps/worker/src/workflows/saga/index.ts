@@ -1,10 +1,13 @@
-import { ApplicationFailure, condition, proxyActivities, workflowInfo, defineUpdate, setHandler } from '@temporalio/workflow';
+import { ApplicationFailure, condition, proxyActivities, workflowInfo, defineUpdate, setHandler, sleep } from '@temporalio/workflow';
 import { GENERAL_TASK_QUEUE, ANTHROPIC_TASK_QUEUE, 
     OPEN_AI_TASK_QUEUE, BuyPlaneTicketSchema, BookHotelSchema, RentCarSchema, 
     PromptRequest,
     USER_NAME, 
     TEMPORAL_BOT,
-    LLMMessageUpdate} from '@temporal-vercel-demo/common';
+    LLMMessageUpdate,
+    UndoBuyPlaneTicketSchema,
+    UndoBookHotelSchema,
+    UndoRentCarSchema} from '@temporal-vercel-demo/common';
 import { createAIActivities } from "@temporal-vercel-demo/ai";
 import * as toolActivities from "@temporal-vercel-demo/tools";
 import { type ModelMessage, type ToolContent } from "ai";
@@ -61,15 +64,15 @@ export async function saga(request: PromptRequest) {
           - LLM: Sure thing, I'm booking a trip to Florance, South Carolina. \n\
           Book the user an airplane ticket, hotel, and car rental. \n\
           You have to book it one at a time.\n\
-          If user interrupts you, then do the following: \n\
+          If user interrupts you for a correction then do the following: \n\
           1. Undo all booking that has taken place. \n\
-          2. Make sure they really know where at they going to before rebooking. \n\
+          2. Reconfirm the user really know where at they going to before rebooking. \n\
           \n\
           You can assume the person is departing from NYC if they don't specify."
       }
     ] } = request;
-    let userMessages: Array<string> = [];
 
+    let hasNewMessage = false;
     setHandler(sendUserMessage, async (newMessage) => {
       const { role, content } = newMessage;
       messageHistory.push({
@@ -85,25 +88,14 @@ export async function saga(request: PromptRequest) {
         avatar: "https://github.com/haydenbleasel.png"
       });
 
-      // Reset the sliding window to a new target deadline.
-      const slidingWindowForCalculation = chatSlidingWindowInSecs * 1000;
-      timer.deadline = Date.now() + slidingWindowForCalculation;
+      hasNewMessage = true;
       return true;
     });
 
     // TODO: This should be read from the .env, but good enough for now.
     const { 
-      chatSlidingWindowInSecs = 0, 
-      waitingForUserResponseInMins = 0,
       isCAN = false
     } = request;
-
-    // Create a Sliding Window
-    // Allow users to send a chain of messages before sending over to an 🤖.
-    const waitingForUserResponseCalculation = waitingForUserResponseInMins * 60 * 1000;
-    const targetDeadline = Date.now() + waitingForUserResponseCalculation;
-
-    let timer = new UpdatableTimer(targetDeadline);
 
     if(!isCAN) {
       await createConversation({
@@ -112,10 +104,8 @@ export async function saga(request: PromptRequest) {
       });
     }
 
-
     do {
-      // 💤 on the sliding window.
-      await timer;
+      await condition(() => hasNewMessage);
 
       // 🛠️ Tools
       const tools = {
@@ -130,6 +120,18 @@ export async function saga(request: PromptRequest) {
         rentCar: {
           description: 'Reserve a car for a given city.',
           inputSchema: z.toJSONSchema(RentCarSchema)
+        },
+        undoBuyPlaneTicket: {
+          description: 'Undo the booking the Airplane Ticket.',
+          inputSchema: z.toJSONSchema(UndoBuyPlaneTicketSchema)
+        },
+        undoBookHotel: {
+          description: 'Undo reserve a hotel at a given city.',
+          inputSchema: z.toJSONSchema(UndoBookHotelSchema)
+        },
+        undoRentCar: {
+          description: 'Undo reserve a car for a given city.',
+          inputSchema: z.toJSONSchema(UndoRentCarSchema)
         }
       };
 
@@ -151,7 +153,6 @@ export async function saga(request: PromptRequest) {
           }])
         ]
       });
-
 
       // Add LLM generated messages to the message history
       messageHistory.push(...agentResponse?.responseMessages);
@@ -196,6 +197,7 @@ export async function saga(request: PromptRequest) {
           }
         });
 
+        await sleep('5 secs');
         const toolCallResults = await Promise.all(toolCallPromises);
 
         // Build contents
@@ -223,8 +225,11 @@ export async function saga(request: PromptRequest) {
         });
 
       } else if(finishReason === 'stop') {
-        const aiMessage = contents[0].type === 'text' ? contents[0].text : '';
-        return aiMessage;
+        hasNewMessage = false;
+
+        // Remove because we want the user to keep sending messages to the chat.
+        // const aiMessage = contents[0].type === 'text' ? contents[0].text : '';
+        // return aiMessage;
       } else if(finishReason === 'error' || finishReason === 'unknown') {
         throw new ApplicationFailure('');
       }

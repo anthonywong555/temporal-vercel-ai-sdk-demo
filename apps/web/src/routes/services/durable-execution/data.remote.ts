@@ -1,9 +1,10 @@
 import { command, query } from '$app/server';
-import { getEnv, UpdateWithStartRequest } from "@temporal-vercel-demo/common";
+import { getEnv, UpdateRequest, UpdateWithStartRequest } from "@temporal-vercel-demo/common";
 import { connectToTemporal, getConnectionOptions } from "@temporal-vercel-demo/durable-execution";
 import { ChatCreateRequestSchema, GENERAL_TASK_QUEUE, CreateWorkflowRequest } from "@temporal-vercel-demo/common";
 import { env } from "$env/dynamic/private";
 import { Connection, WithStartWorkflowOperation } from '@temporalio/client';
+import { any } from 'zod';
 
 export const getStatus = query(async() => {
   // Doing a health check
@@ -59,6 +60,16 @@ export const createChat = command(ChatCreateRequestSchema, async(chatCreateReque
 
   return handle.workflowId;
 });
+
+export const update = command(UpdateRequest, async(something) => {
+  const { id, updateDef, updateArgs } = something;
+  const client = await connectToTemporal(env);
+
+  const handle = await client.workflow.getHandle(id);
+  return await handle.executeUpdate(updateDef, {
+    args: [updateArgs]
+  });
+})
 
 export const updateWithStart = command(UpdateWithStartRequest, async(updateWithStartRequest) => {
   const { id, workflowType, workflowArgs, updateDef, updateArgs } = updateWithStartRequest;
