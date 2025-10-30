@@ -1,9 +1,9 @@
 import { command, query } from '$app/server';
-import { getEnv } from "@temporal-vercel-demo/common";
+import { getEnv, UpdateWithStartRequest } from "@temporal-vercel-demo/common";
 import { connectToTemporal, getConnectionOptions } from "@temporal-vercel-demo/durable-execution";
 import { ChatCreateRequestSchema, GENERAL_TASK_QUEUE, CreateWorkflowRequest } from "@temporal-vercel-demo/common";
 import { env } from "$env/dynamic/private";
-import { Connection } from '@temporalio/client';
+import { Connection, WithStartWorkflowOperation } from '@temporalio/client';
 
 export const getStatus = query(async() => {
   // Doing a health check
@@ -59,3 +59,26 @@ export const createChat = command(ChatCreateRequestSchema, async(chatCreateReque
 
   return handle.workflowId;
 });
+
+export const updateWithStart = command(UpdateWithStartRequest, async(updateWithStartRequest) => {
+  const { id, workflowType, workflowArgs, updateDef, updateArgs } = updateWithStartRequest;
+  const client = await connectToTemporal(env);
+
+  try {
+    const startWorkflowOperation = new WithStartWorkflowOperation(workflowType, {
+      workflowId: id,
+      args: [workflowArgs],
+      taskQueue: GENERAL_TASK_QUEUE,
+      workflowIdConflictPolicy: 'FAIL',
+    });
+    const handle = await client.workflow.startUpdateWithStart(updateDef, {
+      args: [updateArgs],
+      waitForStage: 'ACCEPTED',
+      startWorkflowOperation
+    });
+
+    return await handle.result();
+  } catch(e) {
+    console.error(e);
+  }
+})

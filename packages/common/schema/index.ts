@@ -12,6 +12,14 @@ export const CreateWorkflowRequest = z.object({
   args: z.any(),
 });
 
+export const UpdateWithStartRequest = z.object({
+  id: z.string().describe('Workflow Id'),
+  workflowType: z.string().describe('The workflow type to execute.'),
+  workflowArgs: z.any().describe('Workflow Payload'),
+  updateDef: z.string().describe('The workflow update definition'),
+  updateArgs: z.any().describe('Workflow Update Payloads')
+})
+
 export interface ExecuteToolRequest {
   tool: string;
   toolId: string;
@@ -20,6 +28,18 @@ export interface ExecuteToolRequest {
 
 export interface PromptRequest {
   prompt: string;
+}
+
+export interface PromptRequest {
+  chatSlidingWindowInSecs?: number;
+  waitingForUserResponseInMins?: number;
+  messageHistory?: Array<any>;
+  isCAN: boolean;
+}
+
+export interface LLMMessageUpdate {
+  role: string;
+  content: string;
 }
 
 // Source: https://github.com/colinhacks/zod/issues/2807#issuecomment-2803504922

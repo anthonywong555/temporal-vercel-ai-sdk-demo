@@ -1,15 +1,17 @@
-import { ApplicationFailure, proxyActivities, sleep, workflowInfo } from '@temporalio/workflow';
+import { ApplicationFailure, condition, proxyActivities, workflowInfo, defineUpdate, setHandler } from '@temporalio/workflow';
 import { GENERAL_TASK_QUEUE, ANTHROPIC_TASK_QUEUE, 
     OPEN_AI_TASK_QUEUE, BuyPlaneTicketSchema, BookHotelSchema, RentCarSchema, 
     PromptRequest,
     USER_NAME, 
-    TEMPORAL_BOT} from '@temporal-vercel-demo/common';
+    TEMPORAL_BOT,
+    LLMMessageUpdate} from '@temporal-vercel-demo/common';
 import { createAIActivities } from "@temporal-vercel-demo/ai";
 import * as toolActivities from "@temporal-vercel-demo/tools";
 import { type ModelMessage, type ToolContent } from "ai";
 import { createDrizzleActivites } from "@temporal-vercel-demo/database";
 import { z } from "zod/v4";
 import { chainActivities } from "../utils";
+import { UpdatableTimer } from '../utils';
 
 const { executeTool } = proxyActivities<typeof toolActivities>({
   startToCloseTimeout: '2 minute',
@@ -42,25 +44,11 @@ const { createConversation, createMessage, upsertTool } = proxyActivities<Return
   }
 });
 
+const sendUserMessage = defineUpdate<boolean, [LLMMessageUpdate]>('sendUserMessage');
+
 export async function saga(request: PromptRequest) {
   try {
-    const { prompt } = request;
-
-    await createConversation({
-      id: workflowInfo().workflowId,
-      title: `${workflowInfo().workflowType}-${workflowInfo().workflowId.substring(0, 4)}`
-    });
-
-    await createMessage({
-      conversationId: workflowInfo().workflowId,
-      sender: 'user',
-      content: prompt,
-      name: USER_NAME,
-      avatar: "https://github.com/haydenbleasel.png"
-    });
-
-    // 💬 Messages
-    const messages:ModelMessage[] = [
+    let { messageHistory = [
       {
         role: 'system',
         content: "You are a friendly trip advisor assistant! \n\
@@ -70,7 +58,7 @@ export async function saga(request: PromptRequest) {
           - LLM: Sure thing, I'm booking a trip to Paris, Texas. \n\
           Example 2:\n\
           - User: I want to book a trip to Florence. \n\
-          - LLM: Sure thing, I'm booking a trip to Florance, Italy. \n\
+          - LLM: Sure thing, I'm booking a trip to Florance, South Carolina. \n\
           Book the user an airplane ticket, hotel, and car rental. \n\
           You have to book it one at a time.\n\
           If user interrupts you, then do the following: \n\
@@ -78,67 +66,100 @@ export async function saga(request: PromptRequest) {
           2. Make sure they really know where at they going to before rebooking. \n\
           \n\
           You can assume the person is departing from NYC if they don't specify."
-      },
-      {
-        role: 'user',
-        content: prompt
       }
-    ];
+    ] } = request;
+    let userMessages: Array<string> = [];
 
-    // 🛠️ Tools
-    const tools = {
-      buyPlaneTicket: {
-        description: 'Book the Airplane Ticket.',
-        inputSchema: z.toJSONSchema(BuyPlaneTicketSchema)
-      },
-      bookHotel: {
-        description: 'Reserve a hotel at a given city.',
-        inputSchema: z.toJSONSchema(BookHotelSchema)
-      },
-      rentCar: {
-        description: 'Reserve a car for a given city.',
-        inputSchema: z.toJSONSchema(RentCarSchema)
-      }
-    };
+    setHandler(sendUserMessage, async (newMessage) => {
+      const { role, content } = newMessage;
+      messageHistory.push({
+        role,
+        content
+      });
 
-    while(true) {
+      await createMessage({
+        conversationId: workflowInfo().workflowId,
+        sender: 'user',
+        content,
+        name: USER_NAME,
+        avatar: "https://github.com/haydenbleasel.png"
+      });
+
+      // Reset the sliding window to a new target deadline.
+      const slidingWindowForCalculation = chatSlidingWindowInSecs * 1000;
+      timer.deadline = Date.now() + slidingWindowForCalculation;
+      return true;
+    });
+
+    // TODO: This should be read from the .env, but good enough for now.
+    const { 
+      chatSlidingWindowInSecs = 0, 
+      waitingForUserResponseInMins = 0,
+      isCAN = false
+    } = request;
+
+    // Create a Sliding Window
+    // Allow users to send a chain of messages before sending over to an 🤖.
+    const waitingForUserResponseCalculation = waitingForUserResponseInMins * 60 * 1000;
+    const targetDeadline = Date.now() + waitingForUserResponseCalculation;
+
+    let timer = new UpdatableTimer(targetDeadline);
+
+    if(!isCAN) {
+      await createConversation({
+        id: workflowInfo().workflowId,
+        title: `${workflowInfo().workflowType}-${workflowInfo().workflowId.substring(0, 4)}`
+      });
+    }
+
+
+    do {
+      // 💤 on the sliding window.
+      await timer;
+
+      // 🛠️ Tools
+      const tools = {
+        buyPlaneTicket: {
+          description: 'Book the Airplane Ticket.',
+          inputSchema: z.toJSONSchema(BuyPlaneTicketSchema)
+        },
+        bookHotel: {
+          description: 'Reserve a hotel at a given city.',
+          inputSchema: z.toJSONSchema(BookHotelSchema)
+        },
+        rentCar: {
+          description: 'Reserve a car for a given city.',
+          inputSchema: z.toJSONSchema(RentCarSchema)
+        }
+      };
+
       const agentResponse = await chainActivities({
         activities: [
-          () => openaiGenerateText.executeWithOptions({
+          () => openaiStreamText.executeWithOptions({
             summary: 'OpenAI.GenerateText',
           }, [{
             model: 'gpt-4o-mini',
-            messages,
+            messages: messageHistory,
             tools
           }]),
-          () => anthropicGenerateText.executeWithOptions({
+          () => anthropicStreamText.executeWithOptions({
             summary: 'Anthropic.GenerateText'
           }, [{
             model: 'claude-3-7-sonnet-20250219',
-            messages,
+            messages: messageHistory,
             tools
           }])
         ]
       });
 
+
       // Add LLM generated messages to the message history
-      messages.push(...agentResponse?.responseMessages);
+      messageHistory.push(...agentResponse?.responseMessages);
 
       const { finishReason } = agentResponse;
       const contents = agentResponse?.responseMessages[0].content;
 
       if(finishReason === 'tool-calls') {
-
-        if(contents[0]?.type === 'text') {
-          await createMessage({
-            conversationId: workflowInfo().workflowId,
-            sender: 'assistant',
-            content: contents[0]?.text,
-            name: TEMPORAL_BOT,
-            avatar: "https://github.com/shadcn.png"
-          });
-        }
-
 
         const toolCallPromises = contents.map(async (content: { toolCallId?: any; type?: any; toolName?: any; input?: any; }) => {
           if(content?.type === 'tool-call') {
@@ -196,23 +217,18 @@ export async function saga(request: PromptRequest) {
           }
         }
 
-        messages.push({
+        messageHistory.push({
           role: 'tool',
           content: buildContents
         });
+
       } else if(finishReason === 'stop') {
         const aiMessage = contents[0].type === 'text' ? contents[0].text : '';
-        await createMessage({
-          conversationId: workflowInfo().workflowId,
-          sender: 'assistant',
-          content: aiMessage,
-          avatar: "https://github.com/shadcn.png"
-        });
         return aiMessage;
       } else if(finishReason === 'error' || finishReason === 'unknown') {
         throw new ApplicationFailure('');
       }
-    }
+    } while(true)
   } catch(e) {
     throw new ApplicationFailure('');
   }

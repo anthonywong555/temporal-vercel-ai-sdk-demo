@@ -10,19 +10,44 @@
     PromptInputToolbar,
 	type PromptInputMessage,
   } from "$lib/components/ai-elements/prompt-input";
-  import { createChat } from "./chat/data.remote";
+  import { createChat, updateWithStart } from "./services/durable-execution/data.remote";
 	import type { PageData } from './$types';
 
   let { data }: { data: PageData } = $props();
 
   async function startChat({workflowType, prompt}: {workflowType: string, prompt: string}) {
     const id = crypto.randomUUID();
-    const workflowId = await createChat({
-      id,
-      prompt,
-      workflowType
-    });
-    await goto(`/chat/${workflowId}`);
+
+    if(workflowType === 'saga') {
+      console.log({
+        id,
+        workflowArgs: {},
+        workflowType,
+        updateDef: 'sendUserMessage',
+        updateArgs: {
+          role: 'user',
+          content: prompt
+        }
+      });
+      await updateWithStart({
+        id,
+        workflowArgs: {},
+        workflowType,
+        updateDef: 'sendUserMessage',
+        updateArgs: {
+          role: 'user',
+          content: prompt
+        }
+      });
+    } else {
+      const workflowId = await createChat({
+        id,
+        prompt,
+        workflowType
+      });
+    }
+
+    await goto(`/chat/${id}`);
   }
 
   async function handleSubmit (message: PromptInputMessage) {

@@ -46,7 +46,7 @@
     </Table.Header>
     <Table.Body>
       <Table.Row>
-        <Table.Cell class="font-medium"><a href="{temporal.url}">Temporal</a></Table.Cell>
+        <Table.Cell class="font-medium"><a target="_blank" href="{temporal.url}">Temporal</a></Table.Cell>
         <Table.Cell>
           <Badge variant="{temporalStatus ? 'secondary' : 'destructive'}" class="{temporalStatus ? 'bg-green-500': ''}">{temporalStatus ? 'Online' : 'Offline'}</Badge>
         </Table.Cell>
