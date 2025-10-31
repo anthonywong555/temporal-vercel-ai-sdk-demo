@@ -1,10 +1,18 @@
 <script lang="ts">
   import * as Item from "$lib/components/ui/item/index.js";
   import { Button } from "$lib/components/ui/button/index.js";
+  import Loader2Icon from "@lucide/svelte/icons/loader-2";
   import type { PageProps } from "../../routes/$types";
   
-  export let workflows;
-  export let startChat;
+  let {workflows, startChat} = $props(); 
+
+  let clickedChat = $state('');
+  
+  async function onClickStartChat(workflow:any) {
+    const {title, workflowType, prompt} = workflow;
+    clickedChat = title;
+    await startChat({workflowType, prompt});
+  }
 
 </script>
  
@@ -18,7 +26,12 @@
     </Item.Description>
     </Item.Content>
     <Item.Actions>
-    <Button variant="outline" size="sm" onclick={() => startChat({workflowType: workflow.workflowType, prompt: workflow.prompt})}>Chat</Button>
+    <Button disabled={clickedChat === workflow.title} variant="outline" size="sm" onclick={() => onClickStartChat(workflow)}>
+      {#if clickedChat === workflow.title}
+        <Loader2Icon class="animate-spin" />
+      {/if}
+      Chat
+    </Button>
     </Item.Actions>
   </Item.Root>
   {/each}

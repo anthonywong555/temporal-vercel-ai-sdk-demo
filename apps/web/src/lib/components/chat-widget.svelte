@@ -29,7 +29,6 @@
     MessageAvatar,
     MessageContent,
   } from "$lib/components/ai-elements/message/index.js";
-  import { MessageSquare, SearchIcon } from "@lucide/svelte";
   import { Response } from "$lib/components/ai-elements/response";
   import { Query } from 'zero-svelte';
 	import { get_z } from '$lib/z.svelte';
@@ -54,7 +53,7 @@
         .orderBy('createdAt', 'asc')
     );
 
-    toolsDB = new Query(z.query.ToolSchema
+    toolsDB.updateQuery(z.query.ToolSchema
       .where('conversationId', '=', conversationId)
       .orderBy('createdAt', 'asc')
     )
@@ -62,12 +61,6 @@
 
   const messages = $derived(messagesDB.current);
   const tools = $derived(toolsDB.current);
-
-    // Mock tool data
-  let toolData = {};
-  let errorToolData = {};
-  // Reactive state using Svelte 5 runes
-  //let visibleMessages = $state<MessageData[]>([]);
 </script>
 
 <Conversation class="h-full max-w-full">

@@ -36,9 +36,9 @@
 </script>
 
 
-<ScrollArea class="h-[79vh] w-[full] rounded-md border p-4">
+<div class="h-[79vh] w-[full] rounded-md border p-4">
   <ChatWidget conversationId={conversationId} />
-</ScrollArea>
+</div>
 <PromptInput onSubmit={handleSubmit}>
   <PromptInputBody>
     <PromptInputTextarea bind:value={input_prompt} />
