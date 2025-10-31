@@ -7,14 +7,14 @@ import { GENERAL_TASK_QUEUE, ANTHROPIC_TASK_QUEUE,
     LLMMessageUpdate,
     UndoBuyPlaneTicketSchema,
     UndoBookHotelSchema,
-    UndoRentCarSchema} from '@temporal-vercel-demo/common';
+    UndoRentCarSchema
+} from '@temporal-vercel-demo/common';
 import { createAIActivities } from "@temporal-vercel-demo/ai";
 import * as toolActivities from "@temporal-vercel-demo/tools";
-import { type ModelMessage, type ToolContent } from "ai";
+import { type ToolContent } from "ai";
 import { createDrizzleActivites } from "@temporal-vercel-demo/database";
 import { z } from "zod/v4";
 import { chainActivities } from "../utils";
-import { UpdatableTimer } from '../utils';
 
 const { executeTool } = proxyActivities<typeof toolActivities>({
   startToCloseTimeout: '2 minute',
@@ -24,7 +24,7 @@ const { executeTool } = proxyActivities<typeof toolActivities>({
   }
 });
 
-const { aiGenerateText: openaiGenerateText, aiStreamText: openaiStreamText } = proxyActivities<ReturnType<typeof createAIActivities>>({
+const { aiStreamText: openaiStreamText } = proxyActivities<ReturnType<typeof createAIActivities>>({
   scheduleToCloseTimeout: '2 minute',
   taskQueue: OPEN_AI_TASK_QUEUE,
   retry: {
@@ -32,7 +32,7 @@ const { aiGenerateText: openaiGenerateText, aiStreamText: openaiStreamText } = p
   }
 });
 
-const { aiGenerateText: anthropicGenerateText, aiStreamText: anthropicStreamText } = proxyActivities<ReturnType<typeof createAIActivities>>({
+const { aiStreamText: anthropicStreamText } = proxyActivities<ReturnType<typeof createAIActivities>>({
   scheduleToCloseTimeout: '2 minute',
   taskQueue: ANTHROPIC_TASK_QUEUE,
   retry: {
@@ -66,7 +66,7 @@ export async function saga(request: PromptRequest) {
           You have to book it one at a time.\n\
           If user interrupts you for a correction then do the following: \n\
           1. Only undo all booking that has taken place. \n\
-          2. Reconfirm the user really know where at they going to before rebooking. Like triple check! \n\
+          2. Reconfirm the user really know where at they going to before rebooking. Like triple check! Only do this after you have undo all the bookings. \n\
           \n\
           You can assume the person is departing from NYC if they don't specify."
       }
@@ -157,13 +157,13 @@ export async function saga(request: PromptRequest) {
       // Add LLM generated messages to the message history
       messageHistory.push(...agentResponse?.responseMessages);
 
-      const { finishReason } = agentResponse;
-      const contents = agentResponse?.responseMessages[0].content;
+      const { finishReason, toolCalls } = agentResponse;
 
       if(finishReason === 'tool-calls') {
+        const toolCallPromises = toolCalls.map(async (tool: { toolCallId?: any; type?: any; toolName?: any; input?: any; }) => {
+          if(tool?.type === 'tool-call') {
+            const { toolName, toolCallId, input } = tool;
 
-        const toolCallPromises = contents.map(async (content: { toolCallId?: any; type?: any; toolName?: any; input?: any; }) => {
-          if(content?.type === 'tool-call') {
             const assistantMessage = await createMessage({
               conversationId: workflowInfo().workflowId,
               sender: 'assistant',
@@ -171,7 +171,6 @@ export async function saga(request: PromptRequest) {
               name: TEMPORAL_BOT,
               avatar: "https://github.com/shadcn.png"
             });
-            const { toolName, toolCallId, input } = content;
 
             await upsertTool({
               id: toolCallId,
@@ -198,15 +197,15 @@ export async function saga(request: PromptRequest) {
         });
 
         await sleep('5 secs');
-        const toolCallResults = await Promise.all(toolCallPromises);
+        const toolResults = await Promise.all(toolCallPromises);
 
         // Build contents
         const buildContents:ToolContent = [];
-        for(let i = 0; i < toolCallPromises.length; i++) {
-          const content = contents[i];
-          if(content.type === 'tool-call') {
-             const { toolName, toolCallId } = content;
-             const toolCallResult = toolCallResults[i];
+        for(let i = 0; i < toolResults.length; i++) {
+          const tool = toolCalls[i];
+          if(tool.type === 'tool-call') {
+             const { toolName, toolCallId } = tool;
+             const toolCallResult = toolResults[i];
              buildContents.push({
                 toolName,
                 toolCallId,

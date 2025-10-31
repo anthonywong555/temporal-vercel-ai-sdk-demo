@@ -283,6 +283,9 @@ importers:
       '@temporalio/activity':
         specifier: 'catalog:'
         version: 1.13.1
+      '@temporalio/client':
+        specifier: 'catalog:'
+        version: 1.13.1
       '@temporalio/interceptors-opentelemetry':
         specifier: 'catalog:'
         version: 1.13.1(@temporalio/activity@1.13.1)(@temporalio/client@1.13.1)(@temporalio/common@1.13.1)(@temporalio/worker@1.13.1(@swc/helpers@0.5.17))(@temporalio/workflow@1.13.1)

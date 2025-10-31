@@ -51,6 +51,18 @@ type SchemaFromInterface<T> = ZodObject<{
  [K in keyof Partial<T>]: K extends keyof T ? ZodType<T[K]> : never;
 }>;
 
+export interface AskForConfirmationRequest {
+  message: string;
+}
+
+export interface AskForConfirmationResponse extends AskForConfirmationRequest {
+
+};
+
+export const AskForConfirmationSchema = z.object({
+  message: z.string().describe('The message to ask for confirmation.')
+}) satisfies SchemaFromInterface<AskForConfirmationRequest>;
+
 export interface UndoBuyPlaneTicketRequest {
   fromCity: string;
   fromCountry: string;

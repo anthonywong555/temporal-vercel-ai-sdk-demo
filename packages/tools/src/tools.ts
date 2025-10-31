@@ -8,11 +8,17 @@ import {
   RentCarRequest, RentCarResponse, 
   UndoRentCarRequest, UndoRentCarResponse,
   LocationResponse, WeatherInformationRequest, 
-  WeatherRequest, WeatherResponse 
+  WeatherRequest, WeatherResponse, 
+  AskForConfirmationRequest,
+  AskForConfirmationResponse
 } from "@temporal-vercel-demo/common";
 import { openai } from "@ai-sdk/openai";
 import { anthropic } from "@ai-sdk/anthropic";
 import { generateText } from "ai";
+
+export async function askForConfirmation(request: AskForConfirmationRequest):Promise<AskForConfirmationResponse> {
+  return request;
+}
 
 export async function buyPlaneTicket(request: BuyPlaneTicketRequest):Promise<BuyPlaneTicketResponse> {
   return {
