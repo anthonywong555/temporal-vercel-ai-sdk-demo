@@ -65,8 +65,8 @@ export async function saga(request: PromptRequest) {
           Book the user an airplane ticket, hotel, and car rental. \n\
           You have to book it one at a time.\n\
           If user interrupts you for a correction then do the following: \n\
-          1. Undo all booking that has taken place. \n\
-          2. Reconfirm the user really know where at they going to before rebooking. \n\
+          1. Only undo all booking that has taken place. \n\
+          2. Reconfirm the user really know where at they going to before rebooking. Like triple check! \n\
           \n\
           You can assume the person is departing from NYC if they don't specify."
       }

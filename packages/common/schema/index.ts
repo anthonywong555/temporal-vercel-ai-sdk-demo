@@ -37,8 +37,6 @@ export interface PromptRequest {
 }
 
 export interface PromptRequest {
-  chatSlidingWindowInSecs?: number;
-  waitingForUserResponseInMins?: number;
   messageHistory?: Array<any>;
   isCAN: boolean;
 }
@@ -55,12 +53,16 @@ type SchemaFromInterface<T> = ZodObject<{
 
 export interface UndoBuyPlaneTicketRequest {
   fromCity: string;
+  fromCountry: string;
   toCity: string;
+  toCountry: string; 
 }
 
 export const UndoBuyPlaneTicketSchema = z.object({
   fromCity: z.string().describe('Location from the city to depart.'),
-  toCity: z.string().describe('Location to the city to arrive.')
+  fromCountry: z.string().describe('Location from the country to depart.'),
+  toCity: z.string().describe('Location to the city to arrive.'),
+  toCountry: z.string().describe('Location to the country to depart.'),
 }) satisfies SchemaFromInterface<UndoBuyPlaneTicketRequest>;
 
 export interface UndoBuyPlaneTicketResponse {
@@ -69,12 +71,16 @@ export interface UndoBuyPlaneTicketResponse {
 
 export interface BuyPlaneTicketRequest {
   fromCity: string;
+  fromCountry: string;
   toCity: string;
+  toCountry: string; 
 }
 
 export const BuyPlaneTicketSchema = z.object({
   fromCity: z.string().describe('Location from the city to depart.'),
-  toCity: z.string().describe('Location to the city to arrive.')
+  fromCountry: z.string().describe('Location from the country to depart.'),
+  toCity: z.string().describe('Location to the city to arrive.'),
+  toCountry: z.string().describe('Location to the country to depart.'),
 }) satisfies SchemaFromInterface<BuyPlaneTicketRequest>;
 
 export interface BuyPlaneTicketResponse {
@@ -83,18 +89,22 @@ export interface BuyPlaneTicketResponse {
 
 export interface BookHotelRequest {
   toCity: string;
+  toCountry: string;
 }
 
 export const BookHotelSchema = z.object({
-  toCity: z.string().describe("Location to book a hotel")
+  toCity: z.string().describe('The city to book a hotel'),
+  toCountry: z.string().describe('The country to book a hotel')
 }) satisfies SchemaFromInterface<BookHotelRequest>;
 
 export interface UndoBookHotelRequest {
   toCity: string;
+  toCountry: string;
 }
 
 export const UndoBookHotelSchema = z.object({
-  toCity: z.string().describe("Location to book a hotel")
+  toCity: z.string().describe('The city to book a hotel'),
+  toCountry: z.string().describe('The country to book a hotel')
 }) satisfies SchemaFromInterface<UndoBookHotelRequest>;
 
 export interface UndoBookHotelResponse {
@@ -107,6 +117,7 @@ export interface BookHotelResponse {
 
 export interface UndoRentCarRequest {
   toCity: string;
+  toCountry: string;
 }
 
 export interface UndoRentCarResponse {
@@ -114,15 +125,18 @@ export interface UndoRentCarResponse {
 }
 
 export const UndoRentCarSchema = z.object({
-  toCity: z.string().describe("Location to book a rental car.")
+  toCity: z.string().describe('The city to book a rental car'),
+  toCountry: z.string().describe('The country to book a rental car')
 }) satisfies SchemaFromInterface<UndoBuyPlaneTicketRequest>;
 
 export interface RentCarRequest {
   toCity: string;
+  toCountry: string;
 }
 
 export const RentCarSchema = z.object({
-  toCity: z.string().describe("Location to book a rental car.")
+  toCity: z.string().describe('The city to book a rental car'),
+  toCountry: z.string().describe('The country to book a rental car')
 }) satisfies SchemaFromInterface<RentCarRequest>;
 
 export interface RentCarResponse {
