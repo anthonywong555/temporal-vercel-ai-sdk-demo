@@ -4,6 +4,7 @@ packages:
 
 catalog:
   "ai": "^5.0.59"
+  "@modelcontextprotocol/sdk": "^1.10.2"
   "@ai-sdk/anthropic": "^2.0.23"
   "@ai-sdk/google": "^2.0.17"
   "@ai-sdk/openai": "^2.0.42"
@@ -15,6 +16,8 @@ catalog:
   "@temporalio/workflow": "^1.13.0"
   "@temporalio/interceptors-opentelemetry": "^1.13.0"
   "@opentelemetry/api": "^1.9.0"
+  "express": "^5.0.1"
+  "dotenv": "^17.2.1"
   "eslint": "^9.33.0"
   "tsup": "^8.4.0"
   "typescript": "^5.6.3"
@@ -26,3 +29,9 @@ catalog:
   "drizzle-kit": "^0.31.5"
   "pg": "^8.16.3"
   "@types/pg": "^8.15.5"
+  "@types/express": "5.0.0"
+  "@types/node": "20.17.24"
+  "tsx": "4.19.2"
+  "ts-node": "^10.9.2"
+  "@tsconfig/node22": "^22.0.2"
+  "nodemon": "^3.1.10"
