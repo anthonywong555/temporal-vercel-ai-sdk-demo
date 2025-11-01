@@ -1,0 +1,26 @@
+{
+  "name": "@temporal-vercel-demo/mcp-stdio",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "build": "tsc src/server.ts --outDir dist --target es2023 --module nodenext"
+  },
+  "nodemonConfig": {
+    "execMap": {
+      "ts": "ts-node"
+    },
+    "ext": "ts",
+    "watch": [
+      "src"
+    ]
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "tsx": "catalog:",
+    "typescript": "catalog:"
+  }
+}
