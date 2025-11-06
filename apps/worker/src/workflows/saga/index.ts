@@ -81,10 +81,8 @@ export async function saga(request: PromptRequest) {
 
 
     setHandler(sendUserMessage, async (newMessage) => {
-      // Collect the user message:
-      pendingUserMessages.push(newMessage);
+      const { content } = newMessage;
 
-      const { role, content } = newMessage;
       // Ideally this should be a bulk create.
       await createMessage({
         conversationId: workflowInfo().workflowId,
@@ -93,21 +91,12 @@ export async function saga(request: PromptRequest) {
         name: USER_NAME,
         avatar: "https://github.com/haydenbleasel.png"
       });
-      
-      /*
-      messageHistory.push({
-        role,
-        content
-      });
 
-      await createMessage({
-        conversationId: workflowInfo().workflowId,
-        sender: 'user',
-        content,
-        name: USER_NAME,
-        avatar: "https://github.com/haydenbleasel.png"
-      });
-      */
+      // Collect the user message.
+      // This comes in handy on when the LLM should see the user message. 
+      // Ideally the latest message not inbetween tool calling.
+      pendingUserMessages.push(newMessage);
+
       return true;
     });
 
@@ -227,66 +216,10 @@ export async function saga(request: PromptRequest) {
         }
 
         llmLoop = true;
-        /*
-        // Give the opportunity for the user to send new message.
-        if(await condition(() => hasNewMessage && messageHistory[messageHistory.length - 1].role === 'user', '15 sec')) {
-          // Cancelling the Tool Calling.
-          hasNewMessage = false;
-
-          let i = 0;
-
-          for (const toolCall of toolCalls) {
-            const { type } = toolCall;
-
-            if(type === 'tool-call') {
-              // Get the related assistant Message
-              const assistantMessage = assistantMessages[i];
-
-              const { toolName, toolCallId, input } = toolCall;
-
-              // Attach the tool message to the message.
-              // Set the status to be pending.
-              await upsertTool({
-                id: toolCallId,
-                conversationId: workflowInfo().workflowId,
-                type: toolName,
-                input: input,
-                messageId: assistantMessage[0].id,
-                state: "input-streaming",
-              }, {
-                id: toolCallId,
-                conversationId: workflowInfo().workflowId,
-                type: toolName,
-                input: input,
-                messageId: assistantMessage[0].id,
-                state: 'output-error',
-                errorText: 'Cancelled'
-              });
-
-              i = i + 1;
-            }
-          }
-          continue;
-        }
-          */
 
         const toolCallPromises = plannedToolCalls.map(start => start());
         // TODO: Use Promise.allSeattle :D 
         const toolResults = await Promise.all(toolCallPromises);
-
-        // Add the tool calling in the last content message.
-        // Interate until you see role === 'assistant'
-        // It's possible the user sends a message during the tool calling. 
-        /*
-        for(let i = messageHistory.length - 1; i >= 0; i--) {
-          const aMessage = messageHistory[i];
-          if(aMessage.role === 'assistant') {
-            const content = messageHistory[messageHistory.length - 1].content;
-            messageHistory[messageHistory.length - 1].content = [...content, ...toolCalls];
-            break;
-          }
-        }
-          */
 
         // Build contents
         const buildContents:ToolContent = [];
@@ -314,10 +247,6 @@ export async function saga(request: PromptRequest) {
 
       } else if(finishReason === 'stop') {
         llmLoop = false;
-
-        // Remove because we want the user to keep sending messages to the chat.
-        // const aiMessage = contents[0].type === 'text' ? contents[0].text : '';
-        // return aiMessage;
       } else if(finishReason === 'error' || finishReason === 'unknown') {
         throw new ApplicationFailure('');
       }
