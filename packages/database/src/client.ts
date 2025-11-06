@@ -20,7 +20,7 @@ export class DrizzleClient {
     throw new Error(`Error`);
   }
 
-  async createConversation(conversation: { id?: string | SQL<unknown> | Placeholder<string, any> | undefined; title?: string | SQL<unknown> | Placeholder<string, any> | null | undefined; createdAt?: SQL<unknown> | Placeholder<string, any> | Date | undefined; updatedAt?: SQL<unknown> | Placeholder<string, any> | Date | undefined; }) {
+  async createConversation(conversation: { state: SQL<unknown> | "active" | "closed" | Placeholder<string, any>; id?: string | SQL<unknown> | Placeholder<string, any> | undefined; title?: string | SQL<unknown> | Placeholder<string, any> | null | undefined; createdAt?: SQL<unknown> | Date | Placeholder<string, any> | undefined; updatedAt?: SQL<unknown> | Date | Placeholder<string, any> | undefined; }) {
     return await this.db
       .insert(ConversationSchema)
       .values(conversation);

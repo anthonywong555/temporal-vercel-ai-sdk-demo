@@ -1,9 +1,10 @@
-CREATE TYPE "public"."cot_status" AS ENUM('pending', 'active', 'complete', 'error');--> statement-breakpoint
+CREATE TYPE "public"."conversation_state" AS ENUM('active', 'closed');--> statement-breakpoint
 CREATE TYPE "public"."message_sender" AS ENUM('user', 'assistant', 'system');--> statement-breakpoint
 CREATE TYPE "public"."tool_state" AS ENUM('input-available', 'input-streaming', 'output-available', 'output-error');--> statement-breakpoint
 CREATE TABLE "conversations" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"title" text,
+	"state" "conversation_state" NOT NULL,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL
 );

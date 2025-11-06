@@ -77,6 +77,7 @@ export const updateWithStart = command(UpdateWithStartRequest, async(updateWithS
   await db.insert(ConversationSchema)
     .values({
       id,
+      state: 'active',
       title: `${workflowType}-${id.substring(0, 4)}`
     });
   //const { id, workflowType, workflowArgs, updateDef, updateArgs } = updateWithStartRequest;

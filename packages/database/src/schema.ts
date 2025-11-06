@@ -15,16 +15,15 @@ export const toolStateEnum = pgEnum("tool_state", [
   "output-error",
 ]);
 
-export const cotStatusEnum = pgEnum("cot_status", [
-  "pending",
+export const conversationStateEnum = pgEnum("conversation_state", [
   "active",
-  "complete",
-  "error",
-]);
+  "closed"
+])
 
 export const ConversationSchema = pgTable("conversations", {
   id: uuid("id").primaryKey().defaultRandom(),
   title: text("title"),
+  state: conversationStateEnum("state").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

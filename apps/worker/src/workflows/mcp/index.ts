@@ -87,6 +87,7 @@ export async function stdio(request: PromptRequest) {
     if(!isCAN) {
       await createConversation({
         id: workflowInfo().workflowId,
+        state: 'active',
         title: `${workflowInfo().workflowType}-${workflowInfo().workflowId.substring(0, 4)}`
       });
     }
@@ -268,6 +269,7 @@ export async function http(request: PromptRequest) {
     if(!isCAN) {
       await createConversation({
         id: workflowInfo().workflowId,
+        state: 'active',
         title: `${workflowInfo().workflowType}-${workflowInfo().workflowId.substring(0, 4)}`
       });
     }

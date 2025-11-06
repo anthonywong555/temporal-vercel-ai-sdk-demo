@@ -1,6 +1,5 @@
 <script lang="ts">
   import ChatWidget from "$lib/components/chat-widget.svelte";
-  import { ScrollArea } from "$lib/components/ui/scroll-area/index.js";
   import {
     PromptInput,
     PromptInputBody,
@@ -39,7 +38,7 @@
 <div class="h-[79vh] w-[full] rounded-md border p-4">
   <ChatWidget conversationId={conversationId} />
 </div>
-<PromptInput onSubmit={handleSubmit}>
+<PromptInput multiple={false} onSubmit={handleSubmit}>
   <PromptInputBody>
     <PromptInputTextarea bind:value={input_prompt} />
   </PromptInputBody>

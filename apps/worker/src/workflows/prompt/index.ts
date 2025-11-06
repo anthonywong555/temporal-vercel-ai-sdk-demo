@@ -33,6 +33,7 @@ export async function prompt(request: PromptRequest): Promise<string> {
 
     await createConversation({
       id: workflowInfo().workflowId,
+      state: 'active',
       title: `${workflowInfo().workflowType}-${workflowInfo().workflowId.substring(0, 4)}`
     });
 
@@ -84,6 +85,7 @@ export async function promptStreaming(request: PromptRequest){
 
     await createConversation({
       id: workflowInfo().workflowId,
+      state: 'active',
       title: `${workflowInfo().workflowType}-${workflowInfo().workflowId.substring(0, 4)}`
     });
 

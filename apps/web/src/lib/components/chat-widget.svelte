@@ -1,5 +1,5 @@
 <script lang="ts">
-  	 import {
+  	import {
     ChainOfThought,
     ChainOfThoughtContent,
     ChainOfThoughtHeader,

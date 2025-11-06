@@ -49,6 +49,7 @@ export async function toolCalling(request: PromptRequest):Promise<string> {
 
     await createConversation({
       id: workflowInfo().workflowId,
+      state: 'active',
       title: `${workflowInfo().workflowType}-${workflowInfo().workflowId.substring(0, 4)}`
     });
 
@@ -194,6 +195,7 @@ export async function parallelToolCalling(request: PromptRequest) {
 
     await createConversation({
       id: workflowInfo().workflowId,
+      state: 'active',
       title: `${workflowInfo().workflowType}-${workflowInfo().workflowId.substring(0, 4)}`
     });
 
@@ -337,6 +339,7 @@ export async function toolCallingStreaming(request: PromptRequest):Promise<strin
 
     await createConversation({
       id: workflowInfo().workflowId,
+      state: 'active',
       title: `${workflowInfo().workflowType}-${workflowInfo().workflowId.substring(0, 4)}`
     });
 
