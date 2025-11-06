@@ -11,24 +11,28 @@
 	type PromptInputMessage,
   } from "$lib/components/ai-elements/prompt-input";
   import { createChat, updateWithStart } from "./services/durable-execution/data.remote";
-	import type { PageData } from './$types';
+	import { getLocationInfo } from './services/util/data.remote';
+  import type { PageData } from './$types';
 
   let { data }: { data: PageData } = $props();
 
   async function startChat({workflowType, prompt}: {workflowType: string, prompt: string}) {
     const id = crypto.randomUUID();
 
-    if(workflowType === 'saga' || workflowType === 'stdio' || workflowType === 'http') {
-      console.log({
+    
+    if(workflowType === 'saga') {
+      const location = await getLocationInfo();
+      await updateWithStart({
         id,
         workflowArgs: {},
         workflowType,
         updateDef: 'sendUserMessage',
         updateArgs: {
           role: 'user',
-          content: prompt
+          content: `${prompt}. I'm flying out from ${location}.`
         }
       });
+    } else if(workflowType === 'stdio' || workflowType === 'http') {
       await updateWithStart({
         id,
         workflowArgs: {},

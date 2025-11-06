@@ -68,7 +68,7 @@ export async function saga(request: PromptRequest) {
           1. Only undo all booking that has taken place. Triple check this otherwise, I'm unplugging you. :D. Also it's possible that nothing has been book. If that's the case, then simply start a new booking processing. \n\
           2. Reconfirm the user really know where at they going to before rebooking. Like triple check! Only do this after you have undo all the bookings. \n\
           \n\
-          You can assume the person is departing from NYC if they don't specify."
+          "
       }
     ] } = request;
 
