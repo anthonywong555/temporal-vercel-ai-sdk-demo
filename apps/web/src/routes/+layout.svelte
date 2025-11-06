@@ -3,7 +3,7 @@
 	import favicon from '$lib/assets/favicon.svg';
 	import { ModeWatcher } from "mode-watcher";
 	import { Toaster } from "$lib/components/ui/sonner/index.js";
-  import NavSettings from "$lib/components/nav-settings.svelte";
+  import NavSettings from "$lib/components/settings/nav-settings.svelte";
   import SidebarLeft from "$lib/components/sidebar-left/sidebar-left.svelte";
   import * as Sidebar from "$lib/components/ui/sidebar/index.js";
 

@@ -73,8 +73,7 @@ export async function saga(request: PromptRequest) {
     ] } = request;
 
     // Chat Control Loop
-    let hasNewMessage = false;
-    let llmLoop = true;
+    let llmLoop = false;
 
     // Store all user message in an array.
     let pendingUserMessages:LLMMessageUpdate[] = [];
