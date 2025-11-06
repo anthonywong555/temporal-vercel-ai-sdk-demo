@@ -38,6 +38,18 @@ export const load: PageLoad = ({ params }) => {
         prompt: 'What is the weather in San Francisco and what should I do?'
       },
       {
+        title: 'Tool Calling - MCP Stido',
+        description: 'Demostrate tooling calling with MCP',
+        workflowType: 'stdio',
+        prompt: 'Which Pokemon could best defeat Feebas? Choose one and share details about it.'
+      },
+      {
+        title: 'Tool Calling - MCP HTTP',
+        description: 'Demostrate tooling calling with MCP HTTP',
+        workflowType: 'http',
+        prompt: 'Look up information about user with the ID foo_123'
+      },
+      {
         title: 'Saga - Trip Booking',
         description: 'Demostrate a saga pattern.',
         workflowType: 'saga',

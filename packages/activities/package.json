@@ -1,5 +1,5 @@
 {
-  "name": "@temporal-vercel-demo/tools",
+  "name": "@temporal-vercel-demo/activities",
   "version": "0.0.1",
   "license": "MIT",
   "main": "./dist/index.js",
@@ -13,17 +13,19 @@
     "lint": "TIMING=1 eslint \"**/*.ts*\""
   },
   "dependencies": {
-    "@temporal-vercel-demo/common": "workspace:*",
-    "@temporal-vercel-demo/database": "workspace:*",
-    "ai": "catalog:",
     "@ai-sdk/anthropic": "catalog:",
     "@ai-sdk/google": "catalog:",
+    "@ai-sdk/mcp": "^0.0.5",
     "@ai-sdk/openai": "catalog:",
-    "@temporalio/activity": "catalog:",
+    "@modelcontextprotocol/sdk": "catalog:",
     "@opentelemetry/api": "catalog:",
-    "zod": "catalog:",
+    "@temporal-vercel-demo/common": "workspace:*",
+    "@temporal-vercel-demo/database": "workspace:*",
+    "@temporalio/activity": "catalog:",
+    "ai": "catalog:",
     "drizzle-orm": "catalog:",
-    "pg": "catalog:"
+    "pg": "catalog:",
+    "zod": "catalog:"
   },
   "devDependencies": {
     "eslint": "catalog:",

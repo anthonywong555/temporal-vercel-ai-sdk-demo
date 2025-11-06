@@ -18,7 +18,7 @@
   async function startChat({workflowType, prompt}: {workflowType: string, prompt: string}) {
     const id = crypto.randomUUID();
 
-    if(workflowType === 'saga') {
+    if(workflowType === 'saga' || workflowType === 'stdio' || workflowType === 'http') {
       console.log({
         id,
         workflowArgs: {},

@@ -7,10 +7,10 @@ import { GENERAL_TASK_QUEUE, ANTHROPIC_TASK_QUEUE,
     LLMMessageUpdate,
     UndoBuyPlaneTicketSchema,
     UndoBookHotelSchema,
-    UndoRentCarSchema
+    UndoRentCarSchema,
 } from '@temporal-vercel-demo/common';
 import { createAIActivities } from "@temporal-vercel-demo/ai";
-import * as toolActivities from "@temporal-vercel-demo/tools";
+import * as toolActivities from "@temporal-vercel-demo/activities";
 import { type ToolContent } from "ai";
 import { createDrizzleActivites } from "@temporal-vercel-demo/database";
 import { z } from "zod/v4";
@@ -40,7 +40,7 @@ const { aiStreamText: anthropicStreamText } = proxyActivities<ReturnType<typeof 
   }
 });
 
-const { createConversation, createMessage, upsertTool } = proxyActivities<ReturnType<typeof createDrizzleActivites>>({
+const { createMessage, upsertTool } = proxyActivities<ReturnType<typeof createDrizzleActivites>>({
   scheduleToCloseTimeout: '2 minute',
   retry: {
     maximumAttempts: 3
@@ -65,16 +65,36 @@ export async function saga(request: PromptRequest) {
           Book the user an airplane ticket, hotel, and car rental. \n\
           You have to book it one at a time.\n\
           If user interrupts you for a correction then do the following: \n\
-          1. Only undo all booking that has taken place. \n\
+          1. Only undo all booking that has taken place. Triple check this otherwise, I'm unplugging you. :D. Also it's possible that nothing has been book. If that's the case, then simply start a new booking processing. \n\
           2. Reconfirm the user really know where at they going to before rebooking. Like triple check! Only do this after you have undo all the bookings. \n\
           \n\
           You can assume the person is departing from NYC if they don't specify."
       }
     ] } = request;
 
+    // Chat Control Loop
     let hasNewMessage = false;
+    let llmLoop = true;
+
+    // Store all user message in an array.
+    let pendingUserMessages:LLMMessageUpdate[] = [];
+
+
     setHandler(sendUserMessage, async (newMessage) => {
+      // Collect the user message:
+      pendingUserMessages.push(newMessage);
+
       const { role, content } = newMessage;
+      // Ideally this should be a bulk create.
+      await createMessage({
+        conversationId: workflowInfo().workflowId,
+        sender: 'user',
+        content,
+        name: USER_NAME,
+        avatar: "https://github.com/haydenbleasel.png"
+      });
+      
+      /*
       messageHistory.push({
         role,
         content
@@ -87,26 +107,24 @@ export async function saga(request: PromptRequest) {
         name: USER_NAME,
         avatar: "https://github.com/haydenbleasel.png"
       });
-
-      hasNewMessage = true;
+      */
       return true;
     });
 
-    // TODO: This should be read from the .env, but good enough for now.
-    const { 
-      isCAN = false
-    } = request;
-
-    if(!isCAN) {
-      await createConversation({
-        id: workflowInfo().workflowId,
-        title: `${workflowInfo().workflowType}-${workflowInfo().workflowId.substring(0, 4)}`
-      });
-    }
-
     do {
-      await condition(() => hasNewMessage);
+      await condition(() => (pendingUserMessages.length > 0) || llmLoop);
+      
+      if(pendingUserMessages.length > 0) {
+        // Save the message in the DB.
+        // Add it into the message history.
+        messageHistory = [...messageHistory, ...pendingUserMessages];
+        pendingUserMessages = [];
+      }
 
+      if(llmLoop) {
+        llmLoop = false;
+      }
+      
       // 🛠️ Tools
       const tools = {
         buyPlaneTicket: {
@@ -138,14 +156,14 @@ export async function saga(request: PromptRequest) {
       const agentResponse = await chainActivities({
         activities: [
           () => openaiStreamText.executeWithOptions({
-            summary: 'OpenAI.GenerateText',
+            summary: 'OpenAI.StreamText',
           }, [{
-            model: 'gpt-4o-mini',
+            model: 'gpt-4o',
             messages: messageHistory,
             tools
           }]),
           () => anthropicStreamText.executeWithOptions({
-            summary: 'Anthropic.GenerateText'
+            summary: 'Anthropic.StreamText'
           }, [{
             model: 'claude-3-7-sonnet-20250219',
             messages: messageHistory,
@@ -160,10 +178,14 @@ export async function saga(request: PromptRequest) {
       const { finishReason, toolCalls } = agentResponse;
 
       if(finishReason === 'tool-calls') {
-        const toolCallPromises = toolCalls.map(async (tool: { toolCallId?: any; type?: any; toolName?: any; input?: any; }) => {
-          if(tool?.type === 'tool-call') {
-            const { toolName, toolCallId, input } = tool;
+        const assistantMessages:any[] = [];
+        const plannedToolCalls:any[] = [];
 
+        for(const toolCall of toolCalls) {
+          const { type } = toolCall;
+
+          if(type === 'tool-call') {
+            // First we create a message so our tools can attach to it. 
             const assistantMessage = await createMessage({
               conversationId: workflowInfo().workflowId,
               sender: 'assistant',
@@ -172,6 +194,13 @@ export async function saga(request: PromptRequest) {
               avatar: "https://github.com/shadcn.png"
             });
 
+            // We add it into array just in case we need to update the tool if it gets cancelled.
+            assistantMessages.push(assistantMessage);
+
+            const { toolName, toolCallId, input } = toolCall;
+
+            // Attach the tool message to the message.
+            // Set the status to be pending.
             await upsertTool({
               id: toolCallId,
               conversationId: workflowInfo().workflowId,
@@ -188,16 +217,76 @@ export async function saga(request: PromptRequest) {
               state: "input-streaming"
             });
 
-            return executeTool({
+            // Add it to an array of toolCallPromises
+            plannedToolCalls.push(() => executeTool({
               tool: toolName,
               toolId: toolCallId,
               args: input,
-            });
+            }));
           }
-        });
+        }
 
-        await sleep('5 secs');
+        llmLoop = true;
+        /*
+        // Give the opportunity for the user to send new message.
+        if(await condition(() => hasNewMessage && messageHistory[messageHistory.length - 1].role === 'user', '15 sec')) {
+          // Cancelling the Tool Calling.
+          hasNewMessage = false;
+
+          let i = 0;
+
+          for (const toolCall of toolCalls) {
+            const { type } = toolCall;
+
+            if(type === 'tool-call') {
+              // Get the related assistant Message
+              const assistantMessage = assistantMessages[i];
+
+              const { toolName, toolCallId, input } = toolCall;
+
+              // Attach the tool message to the message.
+              // Set the status to be pending.
+              await upsertTool({
+                id: toolCallId,
+                conversationId: workflowInfo().workflowId,
+                type: toolName,
+                input: input,
+                messageId: assistantMessage[0].id,
+                state: "input-streaming",
+              }, {
+                id: toolCallId,
+                conversationId: workflowInfo().workflowId,
+                type: toolName,
+                input: input,
+                messageId: assistantMessage[0].id,
+                state: 'output-error',
+                errorText: 'Cancelled'
+              });
+
+              i = i + 1;
+            }
+          }
+          continue;
+        }
+          */
+
+        const toolCallPromises = plannedToolCalls.map(start => start());
+        // TODO: Use Promise.allSeattle :D 
         const toolResults = await Promise.all(toolCallPromises);
+
+        // Add the tool calling in the last content message.
+        // Interate until you see role === 'assistant'
+        // It's possible the user sends a message during the tool calling. 
+        /*
+        for(let i = messageHistory.length - 1; i >= 0; i--) {
+          const aMessage = messageHistory[i];
+          if(aMessage.role === 'assistant') {
+            const content = messageHistory[messageHistory.length - 1].content;
+            messageHistory[messageHistory.length - 1].content = [...content, ...toolCalls];
+            break;
+          }
+        }
+          */
 
         // Build contents
         const buildContents:ToolContent = [];
@@ -224,7 +313,7 @@ export async function saga(request: PromptRequest) {
         });
 
       } else if(finishReason === 'stop') {
-        hasNewMessage = false;
+        llmLoop = false;
 
         // Remove because we want the user to keep sending messages to the chat.
         // const aiMessage = contents[0].type === 'text' ? contents[0].text : '';
@@ -233,7 +322,10 @@ export async function saga(request: PromptRequest) {
         throw new ApplicationFailure('');
       }
     } while(true)
-  } catch(e) {
-    throw new ApplicationFailure('');
+  } catch(e: unknown) {
+    if(e instanceof Error) {
+      throw new ApplicationFailure(e.message);
+    }
+    throw new ApplicationFailure();
   }
 }

@@ -3,7 +3,6 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "build": "tsc src/server.ts --outDir dist --target es2023 --module nodenext"
   },
   "nodemonConfig": {
     "execMap": {

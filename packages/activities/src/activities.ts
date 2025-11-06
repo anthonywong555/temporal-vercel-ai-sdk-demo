@@ -1,9 +1,12 @@
 import { log, sleep } from "@temporalio/activity";
 import { ExecuteToolRequest } from "@temporal-vercel-demo/common";
+import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { eq } from "drizzle-orm";
 import { ToolSchema } from "@temporal-vercel-demo/database";
 import * as tools from './tools';
+import { experimental_createMCPClient } from '@ai-sdk/mcp';
+import { z } from 'zod';
 
 // Define a type that represents the tools module with string indexing
 type ToolsModule = {
@@ -55,4 +58,27 @@ export async function executeTool(request: ExecuteToolRequest) {
       return e;
     }
   }
+}
+
+export async function getMCPTools(url: string):Promise<any> {
+  const transport = new StreamableHTTPClientTransport(
+    new URL(url),
+  );
+
+  const mcpClient = await experimental_createMCPClient({
+    transport,
+  });
+
+  
+  const mcpToolsResults = await mcpClient.tools();
+  const tools:any = JSON.parse(JSON.stringify(mcpToolsResults));
+  for (const actionKey in tools) {
+    const params = tools[actionKey].parameters;
+    if (params && params.jsonSchema) {
+      tools[actionKey].parameters = { ...params.jsonSchema };
+    }
+  }
+
+
+  return tools; 
 }

@@ -4,7 +4,8 @@ import { connectToTemporal, getConnectionOptions } from "@temporal-vercel-demo/d
 import { ChatCreateRequestSchema, GENERAL_TASK_QUEUE, CreateWorkflowRequest } from "@temporal-vercel-demo/common";
 import { env } from "$env/dynamic/private";
 import { Connection, WithStartWorkflowOperation } from '@temporalio/client';
-import { any } from 'zod';
+import { db } from "$lib/server/db";
+import { ConversationSchema, MessageSchema } from "@temporal-vercel-demo/database";
 
 export const getStatus = query(async() => {
   // Doing a health check
@@ -73,6 +74,12 @@ export const update = command(UpdateRequest, async(something) => {
 
 export const updateWithStart = command(UpdateWithStartRequest, async(updateWithStartRequest) => {
   const { id, workflowType, workflowArgs, updateDef, updateArgs } = updateWithStartRequest;
+  await db.insert(ConversationSchema)
+    .values({
+      id,
+      title: `${workflowType}-${id.substring(0, 4)}`
+    });
+  //const { id, workflowType, workflowArgs, updateDef, updateArgs } = updateWithStartRequest;
   const client = await connectToTemporal(env);
 
   try {

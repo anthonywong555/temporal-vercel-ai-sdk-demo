@@ -15,7 +15,9 @@
   "dependencies": {
     "@temporal-vercel-demo/common": "workspace:*",
     "@temporal-vercel-demo/database": "workspace:*",
+    "@modelcontextprotocol/sdk": "catalog:",
     "ai": "catalog:",
+    "@ai-sdk/mcp": "catalog:",
     "@ai-sdk/anthropic": "catalog:",
     "@ai-sdk/google": "catalog:",
     "@ai-sdk/openai": "catalog:",

@@ -5,6 +5,7 @@ packages:
 catalog:
   "ai": "^5.0.59"
   "@modelcontextprotocol/sdk": "^1.10.2"
+  "@ai-sdk/mcp": "^0.0.5"
   "@ai-sdk/anthropic": "^2.0.23"
   "@ai-sdk/google": "^2.0.17"
   "@ai-sdk/openai": "^2.0.42"

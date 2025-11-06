@@ -1,5 +1,7 @@
 import { randomUUID } from 'crypto';
 import { Context, CancelledFailure, heartbeat, log } from "@temporalio/activity";
+import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
+import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 import { streamText, generateText, LanguageModel, jsonSchema, stepCountIs } from "ai";
 import { openai } from "@ai-sdk/openai";
 import { anthropic } from "@ai-sdk/anthropic";
@@ -7,6 +9,7 @@ import type { GenerateTextRequest } from "./types";
 import { trace, context } from "@opentelemetry/api";
 import { DrizzleClient } from "@temporal-vercel-demo/database";
 import { TEMPORAL_BOT } from "@temporal-vercel-demo/common";
+import { experimental_createMCPClient } from '@ai-sdk/mcp';
 
 export const PROVIDER_OPEN_AI = 'OPEN_AI';
 export const PROVIDER_ANTHROPIC = 'ANTHROPIC';
@@ -39,6 +42,176 @@ export class AIClient {
     }
     return formattedTools;
   }
+
+  async streamTextHTTP(aRequest: GenerateTextRequest) {
+    const tracer = trace.getTracer('@temporalio/interceptor-workflow');
+    const { model, prompt = '', messages = [], toolChoice } = aRequest;
+    let targetModel:LanguageModel;
+
+    if(this.provider === PROVIDER_ANTHROPIC) {
+      targetModel = anthropic(model);
+    } else if(this.provider === PROVIDER_OPEN_AI) {
+      targetModel = openai(model);
+    } else {
+      throw new InvalidProviderError();
+    }
+
+    const transport = new StreamableHTTPClientTransport(
+      new URL('http://localhost:1234/mcp'),
+    );
+
+    //await stdioTransport.start();
+
+    const mcpClient = await experimental_createMCPClient({
+      transport
+    });
+
+    const tools = await mcpClient.tools();
+
+    const result = await streamText({
+      model: targetModel,
+      //tools,
+      messages,
+      stopWhen: stepCountIs(2),
+      ///stopWhen: stepCountIs(1),
+      experimental_telemetry: {
+        tracer
+      }
+    });
+
+   await mcpClient?.close();
+   //await stdioTransport.close();
+
+    const activityContext = Context.current();
+    //const id = randomUUID();
+    let messageId = ''
+    let content = ''
+    for await (const chunk of result.textStream) {
+      content += chunk;
+
+      // TODO: Ideally use upsert, but getting some 🐞.
+      if(messageId === '') {
+        const test = await this.drizzleClient.createMessage(
+          {
+            conversationId: activityContext.info.workflowExecution.workflowId,
+            sender: 'assistant',
+            content,
+            avatar: "https://github.com/shadcn.png",
+            name: TEMPORAL_BOT
+          }
+        );
+
+        messageId = test[0].id;
+        
+      } else {
+        await this.drizzleClient.updateMessage(
+          {
+            content
+          },
+          messageId
+        );
+      }
+    }
+    const reasoning = await result.reasoning;
+    const reasoningText = await result.reasoningText;
+    const finishReason = await result.finishReason;
+    const responseMessages = (await result.response).messages;
+    const toolCalls = await result.toolCalls;
+    // Format the response
+    return JSON.parse(JSON.stringify({
+      finishReason,
+      responseMessages,
+      toolCalls,
+      reasoning,
+      reasoningText
+    }));
+  }
+
+  async streamTextMCP(aRequest: GenerateTextRequest) {
+    const tracer = trace.getTracer('@temporalio/interceptor-workflow');
+    const { model, prompt = '', messages = [], tools = {}, toolChoice } = aRequest;
+    let targetModel:LanguageModel;
+
+    if(this.provider === PROVIDER_ANTHROPIC) {
+      targetModel = anthropic(model);
+    } else if(this.provider === PROVIDER_OPEN_AI) {
+      targetModel = openai(model);
+    } else {
+      throw new InvalidProviderError();
+    }
+
+    const stdioTransport = new StdioClientTransport({
+      command: 'node',
+      args: ["../mcp-stdio/dist/server.js"]
+    });
+
+    //await stdioTransport.start();
+
+    const mcpClient = await experimental_createMCPClient({
+      transport: stdioTransport
+    });
+
+    const mcpTools = await mcpClient.tools();
+
+    const result = await streamText({
+      model: targetModel,
+      //tools: mcpTools,
+      messages,
+      stopWhen: stepCountIs(2),
+      ///stopWhen: stepCountIs(1),
+      experimental_telemetry: {
+        tracer
+      }
+    });
+
+   await mcpClient?.close();
+   //await stdioTransport.close();
+
+    const activityContext = Context.current();
+    //const id = randomUUID();
+    let messageId = ''
+    let content = ''
+    for await (const chunk of result.textStream) {
+      content += chunk;
+
+      // TODO: Ideally use upsert, but getting some 🐞.
+      if(messageId === '') {
+        const test = await this.drizzleClient.createMessage(
+          {
+            conversationId: activityContext.info.workflowExecution.workflowId,
+            sender: 'assistant',
+            content,
+            avatar: "https://github.com/shadcn.png",
+            name: TEMPORAL_BOT
+          }
+        );
+
+        messageId = test[0].id;
+        
+      } else {
+        await this.drizzleClient.updateMessage(
+          {
+            content
+          },
+          messageId
+        );
+      }
+    }
+    const reasoning = await result.reasoning;
+    const reasoningText = await result.reasoningText;
+    const finishReason = await result.finishReason;
+    const responseMessages = (await result.response).messages;
+    const toolCalls = await result.toolCalls;
+    // Format the response
+    return JSON.parse(JSON.stringify({
+      finishReason,
+      responseMessages,
+      toolCalls,
+      reasoning,
+      reasoningText
+    }));
+  }
+
   async streamText(aRequest: GenerateTextRequest) {
     const tracer = trace.getTracer('@temporalio/interceptor-workflow');
     const { model, prompt = '', messages = [], tools = {}, toolChoice } = aRequest;
@@ -97,6 +270,23 @@ export class AIClient {
     const finishReason = await result.finishReason;
     const responseMessages = (await result.response).messages;
     const toolCalls = await result.toolCalls;
+
+    // Clean up te response messages by removing the tool-call.
+    // The toolCalls already have this info.
+    /*
+    const contents = responseMessages[0].content;
+    const textContents = [];
+    
+    for(const aContent of contents) {
+      let something:any = aContent;
+      if(something?.type === 'text') {
+        textContents.push(aContent);
+      }
+    }
+
+    // @ts-ignore
+    responseMessages[0].content = textContents;
+    */
     // Format the response
     return JSON.parse(JSON.stringify({
       finishReason,
@@ -104,7 +294,7 @@ export class AIClient {
       toolCalls,
       reasoning,
       reasoningText
-    }))
+    }));
   }
 
   async generateText(aRequest: GenerateTextRequest) {

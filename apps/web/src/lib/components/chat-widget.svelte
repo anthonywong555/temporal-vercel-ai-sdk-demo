@@ -84,7 +84,7 @@
                   />
                   <ToolContent>
                       <ToolInput input={JSON.parse(toolData.input)} />
-                      <ToolOutput output={JSON.parse(toolData.output)} />
+                      <ToolOutput output={JSON.parse(toolData.output)} errorText={toolData.errorText} />
                   </ToolContent>
                 </Tool>
             {/if}

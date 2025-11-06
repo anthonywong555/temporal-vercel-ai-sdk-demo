@@ -188,3 +188,28 @@ export interface WeatherInformationRequest extends LocationResponse{}
 export const WeatherInformationSchema = z.object({
   city: z.string().describe('The city weather the user lives.'),
 }) satisfies SchemaFromInterface<WeatherInformationRequest>;
+
+export interface GetPokemonRequest {
+  name: string;
+}
+
+export const GetPokemonSchema = z.object({
+  name: z.string().describe('Pokemon name')
+}) satisfies SchemaFromInterface<GetPokemonRequest>;
+
+export interface Tool {
+  toolCallId?: any; 
+  type?: any; 
+  toolName?: any; 
+  input?: any;
+}
+
+export interface Message {
+  id: string;
+  name: string | null;
+  createdAt: Date;
+  conversationId: string;
+  sender: "system" | "assistant" | "user";
+  content: string | null;
+  avatar: string | null;
+}

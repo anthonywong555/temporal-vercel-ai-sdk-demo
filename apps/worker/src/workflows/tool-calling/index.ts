@@ -5,7 +5,7 @@ import { GENERAL_TASK_QUEUE, ANTHROPIC_TASK_QUEUE,
     USER_NAME, 
     TEMPORAL_BOT} from '@temporal-vercel-demo/common';
 import { createAIActivities } from "@temporal-vercel-demo/ai";
-import * as toolActivities from "@temporal-vercel-demo/tools";
+import * as toolActivities from "@temporal-vercel-demo/activities";
 import { type ModelMessage, type ToolContent } from "ai";
 import { createDrizzleActivites } from "@temporal-vercel-demo/database";
 import { z } from "zod/v4";

@@ -19,7 +19,7 @@ import {
 } from '@temporalio/interceptors-opentelemetry/lib/worker';
 
 import { createAIActivities, AIClient, PROVIDER_OPEN_AI, PROVIDER_ANTHROPIC } from '@temporal-vercel-demo/ai';
-import * as toolsActivities from "@temporal-vercel-demo/tools";
+import * as toolsActivities from "@temporal-vercel-demo/activities";
 import { createDrizzleActivites, DrizzleClient } from '@temporal-vercel-demo/database';
 
 const winstonLogger = createLogger({
