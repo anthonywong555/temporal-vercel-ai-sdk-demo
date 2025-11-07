@@ -89,6 +89,7 @@ export const updateWithStart = command(UpdateWithStartRequest, async(updateWithS
       args: [workflowArgs],
       taskQueue: GENERAL_TASK_QUEUE,
       workflowIdConflictPolicy: 'FAIL',
+      workflowIdReusePolicy: 'REJECT_DUPLICATE',
     });
     const handle = await client.workflow.startUpdateWithStart(updateDef, {
       args: [updateArgs],

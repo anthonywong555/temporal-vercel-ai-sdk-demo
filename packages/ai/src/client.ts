@@ -8,8 +8,11 @@ import { anthropic } from "@ai-sdk/anthropic";
 import type { GenerateTextRequest } from "./types";
 import { trace, context } from "@opentelemetry/api";
 import { DrizzleClient } from "@temporal-vercel-demo/database";
-import { TEMPORAL_BOT } from "@temporal-vercel-demo/common";
-import { experimental_createMCPClient } from '@ai-sdk/mcp';
+import { GetPokemonSchema, TEMPORAL_BOT } from "@temporal-vercel-demo/common";
+import {
+  experimental_createMCPClient as createMCPClient,
+  experimental_MCPClient as MCPClient,
+} from '@ai-sdk/mcp';
 
 export const PROVIDER_OPEN_AI = 'OPEN_AI';
 export const PROVIDER_ANTHROPIC = 'ANTHROPIC';
@@ -44,6 +47,7 @@ export class AIClient {
   }
 
   async streamTextHTTP(aRequest: GenerateTextRequest) {
+    /*
     const tracer = trace.getTracer('@temporalio/interceptor-workflow');
     const { model, prompt = '', messages = [], toolChoice } = aRequest;
     let targetModel:LanguageModel;
@@ -57,20 +61,63 @@ export class AIClient {
     }
 
     const transport = new StreamableHTTPClientTransport(
-      new URL('http://localhost:1234/mcp'),
+      new URL('http://localhost:1234/mcp')
     );
 
-    //await stdioTransport.start();
-
-    const mcpClient = await experimental_createMCPClient({
+    const mcpClient:MCPClient = await createMCPClient({
       transport
     });
 
     const tools = await mcpClient.tools();
 
+    if(tools) {
+      const result = await generateText({
+        model: openai('gpt-4o-mini'),
+        tools,
+        stopWhen: stepCountIs(1),
+        system: '',
+        prompt: '',
+        experimental_telemetry: {
+          tracer
+        }
+      });
+    }
+
+    /*
+    const tracer = trace.getTracer('@temporalio/interceptor-workflow');
+    const { model, prompt = '', messages = [], toolChoice } = aRequest;
+    let targetModel:LanguageModel;
+
+    if(this.provider === PROVIDER_ANTHROPIC) {
+      targetModel = anthropic(model);
+    } else if(this.provider === PROVIDER_OPEN_AI) {
+      targetModel = openai(model);
+    } else {
+      throw new InvalidProviderError();
+    }
+
+    const transport = new StreamableHTTPClientTransport(
+      new URL('http://localhost:1234/mcp')
+    );
+
+    const mcpClient:MCPClient = await createMCPClient({
+      transport
+    });
+
+    const tools = await mcpClient.tools();
+
+    if(tools) {
+      await generateText({
+        model: targetModel,
+        tools,
+        system: '',
+        prompt: ''
+      })
+    }
+    
     const result = await streamText({
       model: targetModel,
-      //tools,
+      tools,
       messages,
       stopWhen: stepCountIs(2),
       ///stopWhen: stepCountIs(1),
@@ -125,11 +172,14 @@ export class AIClient {
       reasoning,
       reasoningText
     }));
+    */
+   return {};
   }
 
-  async streamTextMCP(aRequest: GenerateTextRequest) {
+  async streamTextMCPStdio(aRequest: GenerateTextRequest) {
+    /*
     const tracer = trace.getTracer('@temporalio/interceptor-workflow');
-    const { model, prompt = '', messages = [], tools = {}, toolChoice } = aRequest;
+    const { conversationId, model } = aRequest;
     let targetModel:LanguageModel;
 
     if(this.provider === PROVIDER_ANTHROPIC) {
@@ -147,17 +197,22 @@ export class AIClient {
 
     //await stdioTransport.start();
 
-    const mcpClient = await experimental_createMCPClient({
+    const mcpClient = await createMCPClient({
       transport: stdioTransport
     });
 
-    const mcpTools = await mcpClient.tools();
 
-    const result = await streamText({
+    const result = await generateText({
       model: targetModel,
-      //tools: mcpTools,
-      messages,
-      stopWhen: stepCountIs(2),
+      tools: await mcpClient.tools({
+        schemas: {
+          'get-pokemon': {
+            inputSchema: GetPokemonSchema
+          }
+        }
+      }),
+      messages: [],
+      stopWhen: stepCountIs(1),
       ///stopWhen: stepCountIs(1),
       experimental_telemetry: {
         tracer
@@ -210,6 +265,8 @@ export class AIClient {
       reasoning,
       reasoningText
     }));
+   return {};
+   */
   }
 
   async streamText(aRequest: GenerateTextRequest) {
@@ -271,22 +328,6 @@ export class AIClient {
     const responseMessages = (await result.response).messages;
     const toolCalls = await result.toolCalls;
 
-    // Clean up te response messages by removing the tool-call.
-    // The toolCalls already have this info.
-    /*
-    const contents = responseMessages[0].content;
-    const textContents = [];
-    
-    for(const aContent of contents) {
-      let something:any = aContent;
-      if(something?.type === 'text') {
-        textContents.push(aContent);
-      }
-    }
-
-    // @ts-ignore
-    responseMessages[0].content = textContents;
-    */
     // Format the response
     return JSON.parse(JSON.stringify({
       finishReason,

@@ -26,6 +26,15 @@ export class DrizzleClient {
       .values(conversation);
   }
 
+  async updateConversation(
+    conversation: { state?: SQL<unknown> | "active" | "closed" | PgColumn<ColumnBaseConfig<ColumnDataType, string>, {}, {}> | undefined; id?: string | SQL<unknown> | PgColumn<ColumnBaseConfig<ColumnDataType, string>, {}, {}> | undefined; title?: string | SQL<unknown> | PgColumn<ColumnBaseConfig<ColumnDataType, string>, {}, {}> | null | undefined; createdAt?: SQL<unknown> | Date | PgColumn<ColumnBaseConfig<ColumnDataType, string>, {}, {}> | undefined; updatedAt?: SQL<unknown> | Date | PgColumn<ColumnBaseConfig<ColumnDataType, string>, {}, {}> | undefined; }, 
+    conversationId: string) {
+      return await this.db
+        .update(ConversationSchema)
+        .set(conversation)
+        .where(eq(ConversationSchema.id, conversationId));
+  }
+
   async createMessage(message: { conversationId: string | SQL<unknown> | Placeholder<string, any>; sender: SQL<unknown> | Placeholder<string, any> | "user" | "assistant" | "system"; id?: string | SQL<unknown> | Placeholder<string, any> | undefined; name?: string | SQL<unknown> | Placeholder<string, any> | null | undefined; createdAt?: SQL<unknown> | Placeholder<string, any> | Date | undefined; content?: string | SQL<unknown> | Placeholder<string, any> | null | undefined; avatar?: string | SQL<unknown> | Placeholder<string, any> | null | undefined; }) {
     return await this.db
       .insert(MessageSchema)

@@ -51,7 +51,7 @@ export async function prompt(request: PromptRequest): Promise<string> {
           summary: 'OpenAI.GenerateText',
         }, [{
           model: 'gpt-4o-mini',
-          prompt
+          prompt,
         }]),
         () => anthropicGenerateText.executeWithOptions({
           summary: 'Anthropic.GenerateText'
