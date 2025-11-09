@@ -1,4 +1,3 @@
-import { randomUUID } from 'crypto';
 import { Context, CancelledFailure, heartbeat, log } from "@temporalio/activity";
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
@@ -8,11 +7,12 @@ import { anthropic } from "@ai-sdk/anthropic";
 import type { GenerateTextRequest } from "./types";
 import { trace, context } from "@opentelemetry/api";
 import { DrizzleClient, type Message } from "@temporal-vercel-demo/database";
-import { GetPokemonSchema, TEMPORAL_BOT } from "@temporal-vercel-demo/common";
+import { TEMPORAL_BOT } from "@temporal-vercel-demo/common";
 import {
   experimental_createMCPClient as createMCPClient,
   experimental_MCPClient as MCPClient,
 } from '@ai-sdk/mcp';
+import { z } from 'zod';
 
 export const PROVIDER_OPEN_AI = 'OPEN_AI';
 export const PROVIDER_ANTHROPIC = 'ANTHROPIC';
@@ -143,9 +143,10 @@ export class AIClient {
   }
 
   async streamTextMCPStdio(aRequest: GenerateTextRequest) {
-    /*
     const tracer = trace.getTracer('@temporalio/interceptor-workflow');
-    const { conversationId, model } = aRequest;
+    const { model, prompt = '', messages = [] } = aRequest;
+
+    // TODO: Make this more dynamic
     let targetModel:LanguageModel;
 
     if(this.provider === PROVIDER_ANTHROPIC) {
@@ -155,49 +156,43 @@ export class AIClient {
     } else {
       throw new InvalidProviderError();
     }
-
+    
     const stdioTransport = new StdioClientTransport({
       command: 'node',
-      args: ["../mcp-stdio/dist/server.js"]
+      args: ['apps/mcp-stdio/dist/server.js'],
     });
 
-    //await stdioTransport.start();
-
-    const mcpClient = await createMCPClient({
+    const mcpClient:MCPClient = await createMCPClient({
       transport: stdioTransport
     });
 
-
-    const result = await generateText({
+    const result = await streamText({
       model: targetModel,
+      //@ts-ignore
       tools: await mcpClient.tools({
         schemas: {
           'get-pokemon': {
-            inputSchema: GetPokemonSchema
-          }
-        }
+            inputSchema: z.object({ name: z.string() }),
+          },
+        },
       }),
-      messages: [],
+      ...(messages.length > 0 ? { messages }: {prompt}),
       stopWhen: stepCountIs(1),
-      ///stopWhen: stepCountIs(1),
       experimental_telemetry: {
         tracer
       }
     });
 
-   await mcpClient?.close();
-   //await stdioTransport.close();
-
     const activityContext = Context.current();
-    //const id = randomUUID();
-    let messageId = ''
-    let content = ''
+    let messageId = '';
+    let content = '';
+
     for await (const chunk of result.textStream) {
       content += chunk;
 
       // TODO: Ideally use upsert, but getting some 🐞.
       if(messageId === '') {
-        const test = await this.drizzleClient.createMessage(
+        const initalMessage = await this.drizzleClient.createMessage(
           {
             conversationId: activityContext.info.workflowExecution.workflowId,
             sender: 'assistant',
@@ -207,7 +202,7 @@ export class AIClient {
           }
         );
 
-        messageId = test[0].id;
+        messageId = initalMessage[0].id;
         
       } else {
         await this.drizzleClient.updateMessage(
@@ -218,6 +213,9 @@ export class AIClient {
         );
       }
     }
+
+    await mcpClient.close();
+
     const reasoning = await result.reasoning;
     const reasoningText = await result.reasoningText;
     const finishReason = await result.finishReason;
@@ -231,8 +229,6 @@ export class AIClient {
       reasoning,
       reasoningText
     }));
-   return {};
-   */
   }
 
   async streamText(aRequest: GenerateTextRequest) {

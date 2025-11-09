@@ -3,6 +3,8 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
+    "off-build": "tsc --build",
+    "clean": "rm -rf ./.turbo ./dist node_modules"
   },
   "nodemonConfig": {
     "execMap": {

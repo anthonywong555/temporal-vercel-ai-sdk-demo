@@ -22,7 +22,8 @@
     "@ai-sdk/google": "catalog:",
     "@ai-sdk/openai": "catalog:",
     "@temporalio/activity": "catalog:",
-    "@opentelemetry/api": "catalog:"
+    "@opentelemetry/api": "catalog:",
+    "zod": "catalog:"
   },
   "devDependencies": {
     "eslint": "catalog:",
