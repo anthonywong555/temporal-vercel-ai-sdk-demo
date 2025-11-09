@@ -6,8 +6,11 @@ export function createDrizzleActivites(drizzleClient: DrizzleClient) {
     testError: drizzleClient.testError.bind(drizzleClient),
     createConversation: drizzleClient.createConversation.bind(drizzleClient),
     updateConversation: drizzleClient.updateConversation.bind(drizzleClient),
+    getConversationMessages: drizzleClient.getConversationMessages.bind(drizzleClient),
     createMessage: drizzleClient.createMessage.bind(drizzleClient),
     updateMessage: drizzleClient.updateMessage.bind(drizzleClient),
-    upsertTool: drizzleClient.upsertTool.bind(drizzleClient)
+    upsertTool: drizzleClient.upsertTool.bind(drizzleClient),
+    createTool: drizzleClient.createTool.bind(drizzleClient),
+    updateTool: drizzleClient.updateTool.bind(drizzleClient)
   }
 }
