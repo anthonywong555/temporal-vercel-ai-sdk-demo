@@ -1,5 +1,5 @@
 import { drizzle, NodePgClient, NodePgDatabase, NodePgQueryResultHKT } from "drizzle-orm/node-postgres";
-import { ColumnBaseConfig, ColumnDataType, eq, Placeholder, SQL, sql } from "drizzle-orm";
+import { ColumnBaseConfig, ColumnDataType, eq, Placeholder, SQL, sql, asc } from "drizzle-orm";
 import { ConversationSchema, MessageSchema, ToolSchema } from "./schema";
 import { PgInsertOnConflictDoUpdateConfig, PgInsertBase, PgTableWithColumns, PgColumn } from "drizzle-orm/pg-core";
 
@@ -52,6 +52,16 @@ export class DrizzleClient {
       .where(eq(MessageSchema.id, messageId))
   }
 
+  async getConversationMessages(
+    conversation_id: string
+  ) {
+    return this.db
+      .select()
+      .from(MessageSchema)
+      .where(eq(MessageSchema.conversationId, conversation_id))
+      .orderBy(asc(MessageSchema.createdAt))
+  }
+
   async upsertMessage(
     message: { conversationId: string | SQL<unknown> | Placeholder<string, any>; sender: SQL<unknown> | Placeholder<string, any> | "user" | "assistant" | "system"; id?: string | SQL<unknown> | Placeholder<string, any> | undefined; name?: string | SQL<unknown> | Placeholder<string, any> | null | undefined; createdAt?: SQL<unknown> | Placeholder<string, any> | Date | undefined; content?: string | SQL<unknown> | Placeholder<string, any> | null | undefined; avatar?: string | SQL<unknown> | Placeholder<string, any> | null | undefined; },
     config: PgInsertOnConflictDoUpdateConfig<PgInsertBase<PgTableWithColumns<{ name: "messages"; schema: undefined; columns: { id: PgColumn<{ name: "id"; tableName: "messages"; dataType: "string"; columnType: "PgUUID"; data: string; driverParam: string; notNull: true; hasDefault: true; isPrimaryKey: true; isAutoincrement: false; hasRuntimeDefault: false; enumValues: undefined; baseColumn: never; identity: undefined; generated: undefined; }, {}, {}>; conversationId: PgColumn<{ name: "conversation_id"; tableName: "messages"; dataType: "string"; columnType: "PgUUID"; data: string; driverParam: string; notNull: true; hasDefault: false; isPrimaryKey: false; isAutoincrement: false; hasRuntimeDefault: false; enumValues: undefined; baseColumn: never; identity: undefined; generated: undefined; }, {}, {}>; sender: PgColumn<{ name: "sender"; tableName: "messages"; dataType: "string"; columnType: "PgEnumColumn"; data: "user" | "assistant" | "system"; driverParam: string; notNull: true; hasDefault: false; isPrimaryKey: false; isAutoincrement: false; hasRuntimeDefault: false; enumValues: ["user", "assistant", "system"]; baseColumn: never; identity: undefined; generated: undefined; }, {}, {}>; content: PgColumn<{ name: "content"; tableName: "messages"; dataType: "string"; columnType: "PgText"; data: string; driverParam: string; notNull: false; hasDefault: false; isPrimaryKey: false; isAutoincrement: false; hasRuntimeDefault: false; enumValues: [string, ...string[]]; baseColumn: never; identity: undefined; generated: undefined; }, {}, {}>; avatar: PgColumn<{ name: "avatar"; tableName: "messages"; dataType: "string"; columnType: "PgText"; data: string; driverParam: string; notNull: false; hasDefault: false; isPrimaryKey: false; isAutoincrement: false; hasRuntimeDefault: false; enumValues: [string, ...string[]]; baseColumn: never; identity: undefined; generated: undefined; }, {}, {}>; name: PgColumn<{ name: "name"; tableName: "messages"; dataType: "string"; columnType: "PgText"; data: string; driverParam: string; notNull: false; hasDefault: false; isPrimaryKey: false; isAutoincrement: false; hasRuntimeDefault: false; enumValues: [string, ...string[]]; baseColumn: never; identity: undefined; generated: undefined; }, {}, {}>; createdAt: PgColumn<{ name: "created_at"; tableName: "messages"; dataType: "date"; columnType: "PgTimestamp"; data: Date; driverParam: string; notNull: true; hasDefault: true; isPrimaryKey: false; isAutoincrement: false; hasRuntimeDefault: false; enumValues: undefined; baseColumn: never; identity: undefined; generated: undefined; }, {}, {}>; }; dialect: "pg"; }>, NodePgQueryResultHKT, undefined, undefined, false, never>>
@@ -73,5 +83,19 @@ export class DrizzleClient {
         target: ToolSchema.id,
         set: diffTool
       })
+  }
+
+  async createTool(tool: { id: string | SQL<unknown> | Placeholder<string, any>; state: SQL<unknown> | Placeholder<string, any> | "input-available" | "input-streaming" | "output-available" | "output-error"; conversationId: string | SQL<unknown> | Placeholder<string, any>; type: string | SQL<unknown> | Placeholder<string, any>; messageId: string | SQL<unknown> | Placeholder<string, any>; createdAt?: SQL<unknown> | Date | Placeholder<string, any> | undefined; updatedAt?: SQL<unknown> | Date | Placeholder<string, any> | undefined; input?: string | SQL<unknown> | Placeholder<string, any> | null | undefined; output?: string | SQL<unknown> | Placeholder<string, any> | null | undefined; errorText?: string | SQL<unknown> | Placeholder<string, any> | null | undefined; }) {
+    return await this.db
+      .insert(ToolSchema)
+      .values(tool)
+      .returning();
+  }
+
+  async updateTool(tool: { id?: string | SQL<unknown> | PgColumn<ColumnBaseConfig<ColumnDataType, string>, {}, {}> | undefined; state?: SQL<unknown> | PgColumn<ColumnBaseConfig<ColumnDataType, string>, {}, {}> | "input-available" | "input-streaming" | "output-available" | "output-error" | undefined; conversationId?: string | SQL<unknown> | PgColumn<ColumnBaseConfig<ColumnDataType, string>, {}, {}> | undefined; type?: string | SQL<unknown> | PgColumn<ColumnBaseConfig<ColumnDataType, string>, {}, {}> | undefined; messageId?: string | SQL<unknown> | PgColumn<ColumnBaseConfig<ColumnDataType, string>, {}, {}> | undefined; createdAt?: SQL<unknown> | PgColumn<ColumnBaseConfig<ColumnDataType, string>, {}, {}> | Date | undefined; updatedAt?: SQL<unknown> | PgColumn<ColumnBaseConfig<ColumnDataType, string>, {}, {}> | Date | undefined; input?: string | SQL<unknown> | PgColumn<ColumnBaseConfig<ColumnDataType, string>, {}, {}> | null | undefined; output?: string | SQL<unknown> | PgColumn<ColumnBaseConfig<ColumnDataType, string>, {}, {}> | null | undefined; errorText?: string | SQL<unknown> | PgColumn<ColumnBaseConfig<ColumnDataType, string>, {}, {}> | null | undefined; }, toolId:string) {
+    return await this.db
+      .update(ToolSchema)
+      .set(tool)
+      .where(eq(ToolSchema.id, toolId))
   }
 }

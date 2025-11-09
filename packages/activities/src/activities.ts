@@ -6,7 +6,6 @@ import { eq } from "drizzle-orm";
 import { ToolSchema } from "@temporal-vercel-demo/database";
 import * as tools from './tools';
 import { experimental_createMCPClient } from '@ai-sdk/mcp';
-import { z } from 'zod';
 
 // Define a type that represents the tools module with string indexing
 type ToolsModule = {
@@ -38,6 +37,7 @@ export async function executeTool(request: ExecuteToolRequest) {
     // Call the related tool based on tool value.
     if(typeof toolsWithIndex[tool] === 'function') {
       const result = await toolsWithIndex[tool](args, toolId);
+      log.info(result);
       await dbClient
         .update(ToolSchema)
         .set({ state: 'output-available', output: result })

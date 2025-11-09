@@ -41,7 +41,7 @@ export const load: PageLoad = ({ params }) => {
         title: 'Tool Calling - MCP Stido',
         description: 'Demostrate tooling calling with MCP',
         workflowType: 'stdio',
-        prompt: 'Which Pokemon could best defeat Feebas? Choose one and share details about it.'
+        prompt: 'Why is Jolteon is consider the best Pokémon of all time?'
       },
       {
         title: 'Tool Calling - MCP HTTP',

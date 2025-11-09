@@ -1,14 +1,18 @@
 {
-  "extends": "@tsconfig/node22/tsconfig.json",
-  "version": "5.6.3",
   "compilerOptions": {
+    "strict": true,
     "declaration": true,
-    "declarationMap": true,
     "sourceMap": true,
-    "inlineSources": true,
-    "sourceRoot": "/",
+    "target": "es2022",
+    "lib": ["es2022", "dom"],
+    "module": "esnext",
+    "types": ["node"],
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "moduleResolution": "Bundler",
     "rootDir": "./src",
-    "outDir": "./dist"
+    "outDir": "./build",
+    "composite": true
   },
   "include": [
     "src/**/*.ts"

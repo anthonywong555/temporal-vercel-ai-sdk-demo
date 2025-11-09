@@ -3,18 +3,8 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "dev": "nodemon src/server.ts",
-    "build": "tsc --build",
+    "dev-test": "tsx src/server.ts",
     "clean": "rm -rf ./.turbo ./dist node_modules"
-  },
-  "nodemonConfig": {
-    "execMap": {
-      "ts": "ts-node"
-    },
-    "ext": "ts",
-    "watch": [
-      "src"
-    ]
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "catalog:",
