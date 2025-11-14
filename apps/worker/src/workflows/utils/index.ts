@@ -1,5 +1,10 @@
 import { condition } from "@temporalio/workflow";
 
+import type { AssistantModelMessage, ToolApprovalResponse, ToolModelMessage, ToolResultPart  } from 'ai';
+
+export type ResponseMessage = AssistantModelMessage | ToolModelMessage;
+export type ToolContent = Array<ToolResultPart | ToolApprovalResponse>;
+
 // Generate by ChatGPT 5.0
 type Activity<T> = () => Promise<T>;
 

@@ -54,6 +54,12 @@ export const load: PageLoad = ({ params }) => {
         description: 'Demostrate a saga pattern.',
         workflowType: 'saga',
         prompt: 'I would like to book a trip to Paris.'
+      },
+      {
+        title: 'Agent to Agent',
+        description: 'Demostration on how you do agent to agent',
+        workflowType: 'agentToAgent',
+        prompt: ''
       }
     ]
   }
