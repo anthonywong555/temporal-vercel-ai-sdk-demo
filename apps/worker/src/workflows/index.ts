@@ -10,6 +10,7 @@ export * from './tool-calling';
 export * from './saga';
 export * from './mcp';
 export * from './agent-to-agent';
+export * from './cancellation';
 
 export const interceptors: WorkflowInterceptorsFactory = () => ({
   inbound: [new OpenTelemetryInboundInterceptor()],

@@ -1,4 +1,4 @@
-import { Context, CancelledFailure, heartbeat, log } from "@temporalio/activity";
+import { Context, CancelledFailure, heartbeat, cancellationSignal, log } from "@temporalio/activity";
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 import { streamText, generateText, LanguageModel, jsonSchema, stepCountIs, ModelMessage } from "ai";
@@ -44,6 +44,101 @@ export class AIClient {
       }
     }
     return formattedTools;
+  }
+
+  async aiStreamTextCancellable(aRequest: GenerateTextRequest) {
+    let messageId = '';
+    let content = '';
+    try {
+      const tracer = trace.getTracer('@temporalio/interceptor-workflow');
+      const { model, prompt = '', messages = [], tools = {}, toolChoice } = aRequest;
+      let targetModel:LanguageModel;
+
+      const activityContext = Context.current();
+
+      if(this.provider === PROVIDER_ANTHROPIC) {
+        targetModel = anthropic(model);
+      } else if(this.provider === PROVIDER_OPEN_AI) {
+        targetModel = openai(model);
+      } else {
+        throw new InvalidProviderError();
+      }
+
+      const result = await streamText({
+        model: targetModel,
+        tools: this.formatTools(tools),
+        ...(messages.length > 0 ? {messages} : {prompt}),
+        stopWhen: stepCountIs(1),
+        experimental_telemetry: {
+          tracer
+        },
+        abortSignal: cancellationSignal(),
+        onAbort: async() => {
+          log.info(`onAbort: Cancelled Activity`);
+          await this.drizzleClient.updateMessage(
+            {
+              content: content + ` ---- onAbort: LLM Chat is cancelled.`
+            },
+            messageId
+          );
+        }
+      });
+
+      for await (const chunk of result.textStream) {
+        content += chunk;
+
+        // TODO: Ideally use upsert, but getting some 🐞.
+        if(messageId === '') {
+          const test = await this.drizzleClient.createMessage(
+            {
+              conversationId: activityContext.info.workflowExecution.workflowId,
+              sender: 'assistant',
+              content,
+              avatar: "https://github.com/shadcn.png",
+              name: TEMPORAL_BOT
+            }
+          );
+
+          messageId = test[0].id;
+          heartbeat(chunk);
+          
+        } else {
+          await this.drizzleClient.updateMessage(
+            {
+              content
+            },
+            messageId
+          );
+        }
+      }
+      const reasoning = await result.reasoning;
+      const reasoningText = await result.reasoningText;
+      const finishReason = await result.finishReason;
+      const responseMessages = (await result.response).messages;
+      const toolCalls = await result.toolCalls;
+
+      // Format the response
+      return JSON.parse(JSON.stringify({
+        finishReason,
+        responseMessages,
+        toolCalls,
+        reasoning,
+        reasoningText
+      }));
+    } catch(e) {
+      //@ts-ignore
+      log.error(`catch `, {message: e.message});
+      if(e instanceof CancelledFailure) {
+        log.error(`catch Cancelled Activity`, {message: e.message});
+        await this.drizzleClient.updateMessage(
+          {
+            content: content + ` ---- catch: LLM Chat is cancelled.`
+          },
+          messageId
+        );
+      }
+      throw e;
+    }
   }
 
   async aiStreamTextMCPHttp(aRequest: GenerateTextRequest) {

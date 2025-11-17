@@ -5,6 +5,7 @@ export function createAIActivities(anAIClient: AIClient) {
     aiGenerateText: anAIClient.generateText.bind(anAIClient),
     aiStreamText: anAIClient.streamText.bind(anAIClient),
     //aiStreamTextMCPStdio: anAIClient.streamTextMCPStdio.bind(anAIClient),
-    aiStreamTextMCPHttp: anAIClient.aiStreamTextMCPHttp.bind(anAIClient)
+    aiStreamTextMCPHttp: anAIClient.aiStreamTextMCPHttp.bind(anAIClient),
+    aiStreamTextCancellable: anAIClient.aiStreamTextCancellable.bind(anAIClient)
   }
 }

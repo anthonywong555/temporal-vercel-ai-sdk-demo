@@ -7,6 +7,7 @@ import {
 
 startDebugReplayer({
   workflowsPath: require.resolve('../src/workflows/index'),
+  /*
   interceptors: {
     workflowModules: [require.resolve('../src/workflows/index')],
     activity: [
@@ -16,4 +17,5 @@ startDebugReplayer({
       }),
     ],
   }
+    */
 });

@@ -60,6 +60,12 @@ export const load: PageLoad = ({ params }) => {
         description: 'Demostration on how you do agent to agent',
         workflowType: 'agentToAgent',
         prompt: ''
+      },
+      {
+        title: 'Cancellable Chat Stream',
+        description: 'Demostrate how to cancel an LLM Chat Stream.',
+        workflowType: 'cancellation',
+        prompt: 'Give me a long long written answer on why Typescript is the best language of all time. First explain then make a poem. I want 10,000 words of saying how good it is.'
       }
     ]
   }

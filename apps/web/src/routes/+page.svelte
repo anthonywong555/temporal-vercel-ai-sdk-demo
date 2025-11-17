@@ -32,7 +32,7 @@
           content: `${prompt}. I'm flying out from ${location}.`
         }
       });
-    } else if(workflowType === 'stdio' || workflowType === 'http') {
+    } else if(workflowType === 'stdio' || workflowType === 'http' || workflowType === 'cancellation') {
       await updateWithStart({
         id,
         workflowArgs: {},

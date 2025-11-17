@@ -29,6 +29,7 @@ const winstonLogger = createLogger({
 
 async function run() {
   try {
+    /*
     Runtime.install({
       logger: new DefaultLogger('INFO', (entry) => {
         winstonLogger.log({
@@ -46,6 +47,7 @@ async function run() {
         },
       }
     });
+    */
     
     const { env } = process;
     const NODE_ENV = getEnv(env, 'NODE_ENV');
@@ -85,20 +87,6 @@ async function run() {
           ...createDrizzleActivites(drizzleClient)
         },
         ...getWorkflowOptions(),
-        sinks: traceExporter && {
-          exporter: makeWorkflowExporter(traceExporter, resource),
-        },
-        interceptors: traceExporter && {
-          ...(isProd === false && {
-            workflowModules: [require.resolve('./workflows/index')]
-          }),
-          activity: [
-            (ctx) => ({
-              inbound: new OpenTelemetryActivityInboundInterceptor(ctx),
-              outbound: new OpenTelemetryActivityOutboundInterceptor(ctx),
-            }),
-          ],
-        },
       }),
 
       // OpenAI
@@ -107,14 +95,6 @@ async function run() {
         namespace,
         taskQueue: OPEN_AI_TASK_QUEUE,
         activities: {...createAIActivities(openAIClient) },
-        interceptors: traceExporter && {
-          activity: [
-            (ctx) => ({
-              inbound: new OpenTelemetryActivityInboundInterceptor(ctx),
-              outbound: new OpenTelemetryActivityOutboundInterceptor(ctx),
-            }),
-          ],
-        },
       }),
 
       // Anthropic
@@ -123,14 +103,6 @@ async function run() {
         namespace,
         taskQueue: ANTHROPIC_TASK_QUEUE,
         activities: {...createAIActivities(anthropicAIClient) },
-        interceptors: traceExporter && {
-          activity: [
-            (ctx) => ({
-              inbound: new OpenTelemetryActivityInboundInterceptor(ctx),
-              outbound: new OpenTelemetryActivityOutboundInterceptor(ctx),
-            }),
-          ],
-        },
       })
     ]);
 
@@ -150,7 +122,7 @@ async function run() {
           await aWorker.run();
         } finally {
           await connection.close();
-          await otelSdk.shutdown();
+          //await otelSdk.shutdown();
         }
       });
     }));
